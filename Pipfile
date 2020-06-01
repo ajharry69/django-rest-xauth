@@ -13,6 +13,11 @@ timeago = "*"
 setuptools = "*"
 wheel = "*"
 twine = "*"
+argon2-cffi = "*"
+django-extensions = "*"
+celery = "*"
+django-celery-results = "*"
+mkdocs = "*"
 
 [requires]
 python_version = "3.7"

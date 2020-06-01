@@ -17,7 +17,9 @@ setuptools.setup(
     keywords='django django-rest-framework jwt-bearer-tokens basic-authentication encryption-decryption authorization '
              'authentication djangorestframework-jwt',
     url="https://github.com/ajharry69/django-rest-xauth",
-    packages=setuptools.find_packages(exclude=("*.tests", "*.tests.*", "tests.*", "tests")),
+    packages=setuptools.find_packages(
+        exclude=("*.tests", "*.tests.*", "tests.*", "tests", "djangorestxauth", "api",),
+    ),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
