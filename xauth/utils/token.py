@@ -2,11 +2,12 @@ import json
 import os
 from datetime import timedelta
 
-from django.conf import settings
 from django.utils.datetime_safe import datetime
 from django.utils.encoding import force_str
 from jwcrypto import jwk, jwt
 from jwcrypto.common import json_decode
+
+from xauth.utils.settings import *
 
 # JWT_SIG_ALG = 'HS256'
 JWT_SIG_ALG = 'RS256'
@@ -161,15 +162,15 @@ class Token(TokenKey):
     Defaults to 60days from `activation_date` if an alternative is not provided
     :param payload_key key for `payload` during claims generations
     """
-    __TOKEN_ENCRYPTED = settings.XAUTH.get('REQUEST_TOKEN_ENCRYPTED', True)
+    __TOKEN_ENCRYPTED = XAUTH.get('REQUEST_TOKEN_ENCRYPTED', True)
 
     def __init__(self, payload, activation_date: datetime = None, expiry_period: timedelta = None,
                  payload_key: str = 'payload', signing_algorithm=JWT_SIG_ALG, subject=None, ):
-        password = settings.XAUTH.get('TOKEN_KEY', force_str(settings.SECRET_KEY))
+        password = XAUTH.get('TOKEN_KEY', force_str(settings.SECRET_KEY))
         super().__init__(password=password, signing_algorithm=signing_algorithm)
         self._normal = None
         self._encrypted = None
-        self.subject = subject if subject else 'res-man'  # resource manipulation
+        self.subject = subject if subject else 'access'
         self.payload = payload
         self.payload_key = payload_key
         self.activation_date = activation_date
@@ -207,8 +208,8 @@ class Token(TokenKey):
         """
         issue_date = datetime.now()
         self.activation_date = issue_date if not self.activation_date else self.activation_date
-        self.expiry_period = settings.XAUTH.get('TOKEN_EXPIRY', timedelta(
-            days=60)) if self.expiry_period is None else self.expiry_period
+        self.expiry_period = XAUTH.get('TOKEN_EXPIRY',
+                                       timedelta(days=60)) if self.expiry_period is None else self.expiry_period
 
         expiry_date = self.activation_date + self.expiry_period
         activation_secs = int(self.activation_date.strftime('%s'))
@@ -266,7 +267,7 @@ class Token(TokenKey):
             'alg': "ECDH-ES",
             'enc': "A256GCM",
         }
-        # header = settings.XAUTH.get('JWT_ENC_HEADERS', {
+        # header = XAUTH.get('JWT_ENC_HEADERS', {
         #     "alg": "A256KW",
         #     "enc": "A256CBC-HS512",
         # })

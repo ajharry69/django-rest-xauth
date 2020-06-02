@@ -63,7 +63,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
             claims = tk.get_claims(token=token)
             user_payload = claims.get(tk.payload_key, {})
             user_id = user_payload.get('id', None) if isinstance(user_payload, dict) else user_payload
-            subject = claims.get('sub', 'res-man')
+            subject = claims.get('sub', 'access')
             if verification_ep in request_url and subject != 'account-verification':
                 raise jwe.JWException(f'tokens subject is restricted to {subject}')
             elif activation_ep in request_url and subject != 'account-activation':

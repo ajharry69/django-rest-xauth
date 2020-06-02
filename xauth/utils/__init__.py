@@ -28,7 +28,7 @@ def reset_empty_nullable_to_null(obj, fields):
     for f in fields:
         try:
             val = getattr(obj, f)
-            if valid_str(val) is False:
+            if isinstance(val, str) and not valid_str(val):
                 setattr(obj, f, None)
         except AttributeError:
             failed.append(f)
@@ -44,7 +44,7 @@ def get_204_wrapped_response(r: drf_response.Response):
 def get_wrapped_response(r: drf_response.Response):
     from .response import APIResponse
     from .settings import XAUTH
-    if XAUTH.get('WRAP_DRF_RESPONSE', True):
+    if XAUTH.get('WRAP_DRF_RESPONSE', False):
         metadata, debug_message, message, payload, response_data, response_status_code = (
             None, None, None, None, r.data, r.status_code,)
         if isinstance(response_data, str):

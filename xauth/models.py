@@ -1,12 +1,12 @@
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import timeago
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
-from django.utils.datetime_safe import date as dj_date
+from django.utils.datetime_safe import date as dj_date, datetime as dj_datetime
 from django.utils.translation import gettext_lazy as _
 
 from .utils import enums, valid_str, reset_empty_nullable_to_null
@@ -550,7 +550,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         :return: dict of data that is attached to JWT token as payload
         """
-        return {field: getattr(self, field, None) for field in self.PUBLIC_READ_WRITE_FIELDS}
+        payload = {}
+        for field in self.PUBLIC_READ_WRITE_FIELDS:
+            val = getattr(self, field, None)
+            if isinstance(val, dj_date) or isinstance(val, date):
+                payload[field] = val.isoformat()
+            elif isinstance(val, dj_datetime) or isinstance(val, datetime):
+                payload[field] = val.isoformat()
+            else:
+                payload[field] = val
+        return payload
 
     def _hash_code(self, raw_code):
         """

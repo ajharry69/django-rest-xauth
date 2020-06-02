@@ -70,9 +70,9 @@ class ProfileViewTestCase(UserAPITestCase):
                 # check user password was unchanged
                 self.assertIs(self.user.check_password(self.password), True)
                 # check last name was updated
-                self.assertEqual(self.get_response_data_with_key(put_response, 'last_name'), self.new_last_name)
+                self.assertEqual(get_response_data_payload_with_key(put_response, 'last_name'), self.new_last_name)
                 # check first name was update/patched
-                self.assertEqual(self.get_response_data_with_key(patch_response, 'first_name'), self.new_first_name)
+                self.assertEqual(get_response_data_payload_with_key(patch_response, 'first_name'), self.new_first_name)
         if delete_code:
             self.assertEqual(delete_response.status_code, delete_code)
 

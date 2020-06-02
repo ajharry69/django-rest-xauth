@@ -1,11 +1,9 @@
-from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from xauth.tests import *
 
 
-@override_settings(XAUTH={'WRAP_DRF_RESPONSE': True, }, )
 class AccountActivationRequestViewTestCase(SecurityQuestionAPITestCase):
 
     def assert_correct_username_response(self, user, activation_methods):
@@ -13,7 +11,7 @@ class AccountActivationRequestViewTestCase(SecurityQuestionAPITestCase):
             'username': user.username,
         }, )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('metadata', None), activation_methods)
+        self.assertEqual(get_response_data_metadata(response), activation_methods)
 
     def test_request_account_activation_with_registered_username_and_unusable_security_question_returns_200(self):
         """user has an invalid(not usable) security question attached"""
@@ -34,4 +32,4 @@ class AccountActivationRequestViewTestCase(SecurityQuestionAPITestCase):
             'username': 'self.user.username',  # unregistered username
         }, )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data.get('message', None), 'username or email address is not registered')
+        self.assertEqual(get_response_data_message(response), 'username or email address is not registered')

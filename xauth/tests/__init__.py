@@ -5,6 +5,26 @@ from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from xauth.models import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
+from xauth.utils.settings import *
+
+
+def get_response_data_payload(response):
+    data = response.data
+    return data.get('payload') if XAUTH.get('WRAP_DRF_RESPONSE', False) else data
+
+
+def get_response_data_payload_with_key(response, data_key: str):
+    return get_response_data_payload(response).get(data_key)
+
+
+def get_response_data_message(response):
+    data = response.data
+    return data.get('message', data.get('success', data.get('error', None)))
+
+
+def get_response_data_metadata(response):
+    data = response.data
+    return data.get('metadata', None)
 
 
 def create_user(username):
@@ -66,10 +86,6 @@ def create_password_reset_log(user, change_times: list):
 
 
 class UserAPITestCase(APITestCase):
-    @staticmethod
-    def get_response_data_with_key(response, data_key: str):
-        return response.data.get('payload').get(data_key)
-
     old_first_name, old_last_name = 'John', 'Doe'
     new_first_name, new_last_name = 'Stephenson', 'Doug'
     username, email, password = 'user', 'user@mail-domain.com', 'password'
@@ -103,7 +119,7 @@ class CodeVerificationAPITestCase(UserAPITestCase):
 
         user = get_user_model().objects.get_by_natural_key(self.user.username)
         user.is_verified = True
-        encrypted_token = self.get_response_data_with_key(response, 'encrypted')
+        encrypted_token = get_response_data_payload_with_key(response, 'encrypted')
         token_expiry = token.get_claims(encrypted_token, encrypted=True, ).get('exp', 0)
         token_expiry_days = int((token_expiry - int(datetime.now().strftime('%s'))) / (60 * 60 * 24))
         return token_expiry_days, user

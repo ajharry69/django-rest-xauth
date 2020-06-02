@@ -24,12 +24,11 @@ class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
         fields = 'normal', 'encrypted',
 
 
-class AuthSerializer(AuthTokenOnlySerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile')
+class AuthSerializer(ProfileSerializer):
+    token = serializers.DictField(source='token.tokens', read_only=True, )
 
-    class Meta(AuthTokenOnlySerializer.Meta):
-        fields = ProfileSerializer.Meta.fields + AuthTokenOnlySerializer.Meta.fields
-        read_only_fields = ProfileSerializer.Meta.read_only_fields
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + ('token',)
 
     def validate(self, attrs):
         return super().validate(attrs)
@@ -56,7 +55,6 @@ class SecurityQuestionSerializer(serializers.HyperlinkedModelSerializer):
         model = SecurityQuestion
         fields = ('url', 'id', 'question', 'usable', 'date_added',)
         read_only_fields = ('id',)
-
 
 # class AddSecurityQuestionSerializer(serializers.ModelSerializer):
 #     """

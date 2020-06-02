@@ -5,7 +5,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/5c5b5dbbe3204b3bae605d6b81800d73)](https://www.codacy.com/manual/ajharry69/django-rest-xauth?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ajharry69/django-rest-xauth&amp;utm_campaign=Badge_Grade)
 
 A [custom user model](https://docs.djangoproject.com/en/dev/topics/auth/customizing/) 
-based package that offers numerous features from JWT and Basic authentication to REST API end-points for signup,signin,
+based package with features ranging from JWT and Basic authentication to REST API end-points for signup,signin,
 email verification, password resetting and account activation.
  
 Email verification and password resetting are based on hashed verification-code and temporary password respectively. And 

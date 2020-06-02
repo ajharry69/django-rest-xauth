@@ -15,9 +15,8 @@ wheel = "*"
 twine = "*"
 argon2-cffi = "*"
 django-extensions = "*"
-celery = "*"
-django-celery-results = "*"
 mkdocs = "*"
+markdown = "*"
 
 [requires]
 python_version = "3.7"

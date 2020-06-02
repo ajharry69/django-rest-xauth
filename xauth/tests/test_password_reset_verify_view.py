@@ -36,4 +36,4 @@ class PasswordResetVerifyViewTestCase(CodeVerificationAPITestCase):
         }, )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data.get('message', None), 'incorrect')
+        self.assertEqual(get_response_data_message(response), 'incorrect')

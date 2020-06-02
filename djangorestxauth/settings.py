@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'xauth.apps.XauthConfig',
     'rest_framework',
     'django_extensions',
-    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -76,7 +75,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'djangorestxauth.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -127,9 +125,23 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+# EMAIL_HOST = os.environ['EMAIL_HOST']
+#
+# EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+#
+# EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+#
+# EMAIL_USE_TLS = True
+#
+# EMAIL_PORT = 587
+
+EMAIL_PORT = 1025
+
+EMAIL_TIMEOUT = 20  # seconds
+
 XAUTH = {
     # occasionally included in emails sent by the API to your users for familiarity
-    'APP_NAME': 'Xently',
+    'APP_NAME': '',
     'TOKEN_KEY': force_str(SECRET_KEY),
     'TOKEN_EXPIRY': timedelta(days=60),
     # string. Email addresses to which account / auth-related replies are to be sent.
@@ -149,7 +161,7 @@ XAUTH = {
     # period within which a user is considered new since account creation date
     'NEWBIE_VALIDITY_PERIOD': timedelta(days=1),
     'AUTO_HASH_PASSWORD_ON_SAVE': True,
-    'WRAP_DRF_RESPONSE': True,
+    'WRAP_DRF_RESPONSE': False,
     'REQUEST_TOKEN_ENCRYPTED': True,
     'POST_REQUEST_USERNAME_FIELD': 'username',
     'POST_REQUEST_PASSWORD_FIELD': 'password',
@@ -163,14 +175,6 @@ XAUTH = {
     # 0 = both(encrypted&non-encrypted),1 = encrypted only, 2 = non-encrypted only
     'RETURN_TOKEN_TYPE': 0,  # TODO: Use
 }
-
-CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
-
-CELERY_TASK_SERIALIZER = 'json'
-
-CELERY_RESULT_BACKEND = 'django-db'
-
-CELERY_CACHE_BACKEND = 'django-cache'
 
 AUTH_USER_MODEL = 'xauth.User'
 

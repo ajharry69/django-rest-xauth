@@ -12,7 +12,7 @@ class PasswordResetSendViewTestCase(UserAPITestCase):
         response = self.client.post(reverse('xauth:password-reset-send'), )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNotNone(response.data.get('payload', None))
+        self.assertIsNotNone(get_response_data_payload(response))
 
     def test_request_password_reset_with_registered_email_returns_200(self):
         """assumes no other authentication schemes were found in the headers"""
@@ -22,7 +22,7 @@ class PasswordResetSendViewTestCase(UserAPITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNotNone(response.data.get('payload', None))
+        self.assertIsNotNone(get_response_data_payload(response))
 
     def test_request_password_reset_with_unregistered_email_returns_404(self):
         """assumes no other authentication schemes were found in the headers"""
@@ -32,5 +32,4 @@ class PasswordResetSendViewTestCase(UserAPITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data.get('message', None), 'email address is not registered')
-        self.assertIsNone(response.data.get('payload', None))
+        self.assertEqual(get_response_data_message(response), 'email address is not registered')
