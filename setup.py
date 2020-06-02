@@ -30,14 +30,14 @@ if sys.argv[-1] == "publish":
         print("Try using `pip install -U twine wheel`.\nExiting.")
         sys.exit()
     if re.match('^-([t]|-test)$', sys.argv[-2]):
-        print(f'Uploading test package...')
-        # os.system('twine upload --repository testpypi dist/*')
+        # uploads test package
+        os.system('twine upload --repository testpypi dist/*')
     else:
-        print('Uploading production package...')
-        # os.system("twine upload dist/*")
-    # print("You probably want to also tag the version now:")
-    # print(" git tag -a {0} -m 'version {0}'".format(version))
-    # print(" git push --tags")
+        # uploads production package
+        os.system("twine upload dist/*")
+    print("You probably want to also tag the version now:")
+    print(" git tag -a {0} -m 'version {0}'".format(version))
+    print(" git push --tags")
     shutil.rmtree('dist')
     shutil.rmtree('build')
     shutil.rmtree('django_rest_xauth.egg-info')

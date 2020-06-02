@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from api import views
+from demo import views
 
 urlpatterns = [
     path('', views.api_root, name='index'),
