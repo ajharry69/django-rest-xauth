@@ -183,4 +183,4 @@ correctness before user's password is changed to a new one(provided through a **
 **Usage**: used to create a url through which user's security question's answer will be verified/validated for 
 correctness before account is considered activated.
 
-[basic-auth-scheme]: https://www.wikipedia.com/
+[basic-auth-scheme]: https://en.wikipedia.org/wiki/Basic_access_authentication

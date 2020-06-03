@@ -9,7 +9,10 @@ nav:
       - Classes:
           - TokenKey: api-guide/classes/token-key.md
           - Token: api-guide/classes/token.md
-          - User: api-guide/classes/user.md
+          - User:
+              - Overview: api-guide/classes/user/index.md
+              - Properties: api-guide/classes/user/properties.md
+              - Methods: api-guide/classes/user/methods.md
   - About:
       - 'Contributing': about/contributing.md
       - 'License': about/license.md
