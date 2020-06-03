@@ -152,7 +152,6 @@ XAUTH = {
     # string. Email used to send verification code.
     # Also permitted: "Name <email-address>"
     'ACCOUNTS_EMAIL': settings.EMAIL_HOST_USER,
-    'ACCOUNTS_EMAIL_PASSWORD': settings.EMAIL_HOST_PASSWORD,
     'VERIFICATION_CODE_LENGTH': 6,
     'TEMPORARY_PASSWORD_LENGTH': 8,
     'VERIFICATION_CODE_EXPIRY': timedelta(hours=1),
@@ -162,7 +161,6 @@ XAUTH = {
     'NEWBIE_VALIDITY_PERIOD': timedelta(days=1),
     'AUTO_HASH_PASSWORD_ON_SAVE': True,
     'WRAP_DRF_RESPONSE': False,
-    'REQUEST_TOKEN_ENCRYPTED': True,
     'POST_REQUEST_USERNAME_FIELD': 'username',
     'POST_REQUEST_PASSWORD_FIELD': 'password',
     'ENFORCE_ACCOUNT_VERIFICATION': True,
@@ -172,8 +170,6 @@ XAUTH = {
     'VERIFICATION_ENDPOINT': 'verification-code/verify/',
     'PASSWORD_RESET_ENDPOINT': 'password-reset/verify/',
     'ACTIVATION_ENDPOINT': 'activation/activate/',
-    # 0 = both(encrypted&non-encrypted),1 = encrypted only, 2 = non-encrypted only
-    'RETURN_TOKEN_TYPE': 0,  # TODO: Use
 }
 
 AUTH_USER_MODEL = 'xauth.User'

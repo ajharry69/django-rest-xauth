@@ -100,4 +100,4 @@ urlpatterns = [
 Full documentation for the project is available [here](http://django-rext-xauth.readthedocs.io/)
 
 ## Contributing
-Please be sure to review [contributing guidelines](CONTRIBUTING.md) to learn how to help the project.
+Please be sure to review [contributing guidelines](about/contributing.md) to learn how to help the project.
