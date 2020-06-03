@@ -1,0 +1,9 @@
+site_name: django-rest-xauth
+repo_url: https://github.com/ajharry69/django-rest-xauth/
+site_author: Orinda Harrison
+nav:
+  - Home : index.md
+  - About:
+      - 'License' : license.md
+      - 'Contributing' : contributing.md
+theme: readthedocs
