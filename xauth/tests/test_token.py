@@ -32,7 +32,7 @@ class TokenTest(APITestCase):
 
     def test_claims_contains_checked_claims(self):
         token = Token(payload=1)
-        self.assertDictContainsSubset(token.checked_claims, token.claims)
+        self.assertLessEqual(token.checked_claims.items(), token.claims.items())
 
     def test_claims_contains_payload_key(self):
         token = Token(payload=1)

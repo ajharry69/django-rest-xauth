@@ -6,8 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/django-rest-xauth/badge/?version=latest)](https://django-rest-xauth.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/django-rest-xauth.svg)](https://badge.fury.io/py/django-rest-xauth)
 
-A [custom user model](https://docs.djangoproject.com/en/dev/topics/auth/customizing/) 
-based package with features ranging from JWT and Basic authentication to REST API end-points for signup,signin,
+A [custom user model][django-customizing-user-model-url] based package with features ranging from JWT and Basic authentication to REST API end-points for signup,signin,
 email verification, password resetting and account activation.
  
 Email verification and password resetting are based on hashed verification-code and temporary password respectively. And 
@@ -42,7 +41,7 @@ Most of the package's features are designed to be independently usable and custo
 >**N/B:** _temporary passwords_ and _verification codes_ are both generated and returned from the `User` model hence 
 >opting to SMS based sending of the _verification codes_ and _temporary passwords_ should be as easy as extending the 
 >`User` model, overriding a single method(that also generates and returns the code) and finally changing django's 
->`AUTH_USER_MODEL` to your model name as [explained here](https://docs.djangoproject.com/en/dev/topics/auth/customizing/).
+>`AUTH_USER_MODEL` to your model name as [explained here][django-auth-user-model-setting-url].
 
 ## Quick start
 Add the following to your Django project's `settings.py` file
@@ -97,7 +96,11 @@ urlpatterns = [
 | security-questions/ | Retrieving a list of security questions | GET | application/x-www-form-urlencoded |
 
 ## Documentation and support
-Full documentation for the project is available [here](http://django-rext-xauth.readthedocs.io/)
+Full documentation for the project is available [here][documentation-url].
 
 ## Contributing
 Please be sure to review [contributing guidelines](about/contributing.md) to learn how to help the project.
+
+[django-auth-user-model-setting-url]: https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
+[django-customizing-user-model-url]: https://docs.djangoproject.com/en/dev/topics/auth/customizing/
+[documentation-url]: https://django-rest-xauth.readthedocs.io/en/latest/

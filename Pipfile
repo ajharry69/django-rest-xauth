@@ -17,6 +17,7 @@ argon2-cffi = "*"
 django-extensions = "*"
 mkdocs = "*"
 markdown = "*"
+tox = "*"
 
 [requires]
 python_version = "3.7"
