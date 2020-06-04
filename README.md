@@ -80,20 +80,7 @@ urlpatterns = [
 - Start the development server and visit http://127.0.0.1:8000/accounts/signup/ to register a new account.
 
 ## API endpoints
-| Endpoint | Purpose | Method | Content-Type |
-| ---- | ------ | --- | ---- |
-| signup/ | User registration | POST | application/json |
-| signin/ | User login | POST | application/x-www-form-urlencoded |
-| signout/ | User logout | POST | application/x-www-form-urlencoded |
-| profile/{id}/ | Profile access(read)/update/delete | GET/PUT/PATCH/DELETE | application/json |
-| verification-code/request/ | Requesting new verification code | POST | application/x-www-form-urlencoded |
-| verification-code/verify/ | Verifying verification code | POST | application/x-www-form-urlencoded |
-| password-reset/request/ | Requesting new temporary password for password reset | POST | application/x-www-form-urlencoded |
-| password-reset/verify/ | Verifying temporary password | POST | application/x-www-form-urlencoded |
-| activation/request/ | Requesting account activation. | POST | application/x-www-form-urlencoded |
-| activation/verify/ | Verifying security question's answer | POST | application/x-www-form-urlencoded |
-| security-question/add/ | Adding/attaching security question and answer to user account | POST | application/x-www-form-urlencoded |
-| security-questions/ | Retrieving a list of security questions | GET | application/x-www-form-urlencoded |
+Read more [here][documentation-endpoints-url].
 
 ## Documentation and support
 Full documentation for the project is available [here][documentation-url].
@@ -104,3 +91,4 @@ Please be sure to review [contributing guidelines](docs/about/contributing.md) t
 [django-auth-user-model-setting-url]: https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 [django-customizing-user-model-url]: https://docs.djangoproject.com/en/dev/topics/auth/customizing/
 [documentation-url]: https://django-rest-xauth.readthedocs.io/en/latest/
+[documentation-endpoints-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/endpoints/

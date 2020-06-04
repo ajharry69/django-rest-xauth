@@ -7,8 +7,10 @@ nav:
       - Settings: api-guide/settings.md
       - Endpoints: api-guide/endpoints.md
       - Classes:
-          - TokenKey: api-guide/classes/token-key.md
-          - Token: api-guide/classes/token.md
+          - Token:
+              - Overview: api-guide/classes/token/index.md
+              - Properties: api-guide/classes/token/properties.md
+              - Methods: api-guide/classes/token/methods.md
           - User:
               - Overview: api-guide/classes/user/index.md
               - Properties: api-guide/classes/user/properties.md
