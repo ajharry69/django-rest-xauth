@@ -57,7 +57,7 @@ setuptools.setup(
              'authentication',
     url="https://github.com/ajharry69/django-rest-xauth",
     packages=setuptools.find_packages(
-        exclude=("*.tests", "*.tests.*", "tests.*", "tests", "djangorestxauth", "api",),
+        exclude=("*.tests", "*.tests.*", "tests.*", "tests", "djangorestxauth", "demo",),
     ),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
