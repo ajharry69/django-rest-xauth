@@ -13,6 +13,38 @@ XAUTH = {
 
 **NOTE:** All `XAUTH` setting names must be written in **capital letters(uppercase)** for a setting to take effect.
 
+## USER_PROFILE_SERIALIZER
+**Type:** `str`
+
+**Default:** 'xauth.serializers.ProfileSerializer'
+
+**Usage:** Serializers allow complex data such as querysets and model instances to be converted to native Python data 
+types that can then be easily rendered into JSON, XML or other content types. More on serializers can be found 
+[here][drf-serializer-url] or [here][drf-serializer-tutorial-url].
+
+**Note:** `fields` declared in this serializer will be inherited by `xauth.serializer.SignUpSerializer` with addition 
+of `password` field that is only relevant for sign-up.
+
+### Conditions
+`django-rest-xauth` makes the following assumptions of the serializer class it expects from this setting:
+
+ 1. It is a direct or indirect subclass of `rest_framework.serializers.Serializer`.
+ 2. It contains a nested `Meta` class which contains a `model` and `fields` properties.
+
+**Consider an example of this default serializer class**
+```python
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+class ProfileSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile')
+
+    class Meta:
+        model = get_user_model()
+        fields = tuple(get_user_model().PUBLIC_READ_WRITE_FIELDS) + ('url',)
+        read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
+```
+
 ## APP_NAME
 **Type**: `str`
 
@@ -105,13 +137,6 @@ the `django-rest-xauth` should be channelled.
 
 **Usage**: period within which a user will be considered new from the time of account creation.
 
-## AUTO_HASH_PASSWORD_ON_SAVE
-**Type**: `bool`
-
-**Default**: `True`
-
-**Usage**: if `True` user's password will be hashed whenever save method is called
-
 ## WRAP_DRF_RESPONSE
 **Type**: `bool`
 
@@ -184,3 +209,5 @@ correctness before user's password is changed to a new one(provided through a **
 correctness before account is considered activated.
 
 [basic-auth-scheme]: https://en.wikipedia.org/wiki/Basic_access_authentication
+[drf-serializer-url]: https://www.django-rest-framework.org/api-guide/serializers/
+[drf-serializer-tutorial-url]: https://www.django-rest-framework.org/tutorial/1-serialization/

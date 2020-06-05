@@ -159,7 +159,6 @@ XAUTH = {
     'ACCOUNT_ACTIVATION_TOKEN_EXPIRY': timedelta(days=1),
     # period within which a user is considered new since account creation date
     'NEWBIE_VALIDITY_PERIOD': timedelta(days=1),
-    'AUTO_HASH_PASSWORD_ON_SAVE': True,
     'WRAP_DRF_RESPONSE': False,
     'POST_REQUEST_USERNAME_FIELD': 'username',
     'POST_REQUEST_PASSWORD_FIELD': 'password',
@@ -170,6 +169,7 @@ XAUTH = {
     'VERIFICATION_ENDPOINT': 'verification-code/verify/',
     'PASSWORD_RESET_ENDPOINT': 'password-reset/verify/',
     'ACTIVATION_ENDPOINT': 'activation/activate/',
+    'USER_PROFILE_SERIALIZER': 'xauth.serializers.ProfileSerializer',
 }
 
 AUTH_USER_MODEL = 'xauth.User'

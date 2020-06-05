@@ -1,7 +1,11 @@
+import importlib
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from xauth.models import SecurityQuestion
+from xauth.utils import valid_str
+from xauth.utils.settings import XAUTH
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -11,8 +15,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = get_user_model().PUBLIC_READ_WRITE_FIELDS + ('url',)
-        read_only_fields = get_user_model().READ_ONLY_FIELDS
+        fields = tuple(get_user_model().PUBLIC_READ_WRITE_FIELDS) + ('url',)
+        read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
+
+
+def get_serializer_class():
+    sr = XAUTH.get('USER_PROFILE_SERIALIZER', 'xauth.serializers.ProfileSerializer')
+    if valid_str(sr):
+        # probably a serializer class
+        module_name, class_name = sr.rsplit('.', 1)
+        return getattr(importlib.import_module(module_name), class_name)
+    return ProfileSerializer
+
+
+serializer_class = get_serializer_class()
 
 
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
@@ -24,11 +40,11 @@ class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
         fields = 'normal', 'encrypted',
 
 
-class AuthSerializer(ProfileSerializer):
+class AuthSerializer(serializer_class):
     token = serializers.DictField(source='token.tokens', read_only=True, )
 
-    class Meta(ProfileSerializer.Meta):
-        fields = ProfileSerializer.Meta.fields + ('token',)
+    class Meta(serializer_class.Meta):
+        fields = tuple(serializer_class.Meta.fields) + ('token',)
 
     def validate(self, attrs):
         return super().validate(attrs)
@@ -39,7 +55,16 @@ class SignUpSerializer(AuthSerializer):
                                      style={'input_type': 'password'})
 
     class Meta(AuthSerializer.Meta):
-        fields = AuthSerializer.Meta.fields + get_user_model().WRITE_ONLY_FIELDS
+        fields = tuple(AuthSerializer.Meta.fields) + tuple(get_user_model().WRITE_ONLY_FIELDS)
+
+    def create(self, validated_data):
+        # saves password in plain text
+        user = super().create(validated_data)
+        if user.has_usable_password():
+            # hash and re-save password
+            user.password = user.get_hashed(user.password)
+            user.save()
+        return user
 
 
 class SecurityQuestionSerializer(serializers.HyperlinkedModelSerializer):

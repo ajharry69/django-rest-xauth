@@ -11,7 +11,7 @@ class PasswordResetVerifyViewTestCase(CodeVerificationAPITestCase):
         new_password = 'new_password'
         self.assertIs(self.user.check_password(self.password), True)
         self.user.is_verified = True  # without this token expiry test would fail
-        self.user.save(auto_hash_password=False, )
+        self.user.save()
         self.assertIs(self.user.check_password(self.password), True)
         pr_token = self.user.password_reset_token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {pr_token}')

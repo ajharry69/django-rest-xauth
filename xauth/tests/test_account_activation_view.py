@@ -11,7 +11,7 @@ class AccountActivationViewTestCase(SecurityQuestionAPITestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user.is_active = False
-        self.user.save(auto_hash_password=False)
+        self.user.save()
         self.correct_security_question_answer = 'blue'
         update_metadata(self.user, self.security_question, self.correct_security_question_answer)
 

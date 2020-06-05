@@ -44,22 +44,26 @@ class UserManager(BaseUserManager):
             mobile_number=None,
             date_of_birth=None,
             provider=None, ):
-        user = self.__raw_user(email, username, password, surname, first_name, last_name, mobile_number,
-                               date_of_birth, )
-        user.save(auto_hash_password=True, using=self._db)
+        user = self.__user(email, username, password, surname, first_name, last_name, mobile_number,
+                           date_of_birth, )
+        user.password = user.get_hashed(password)
+        user.save(using=self._db)
         return user
 
     def create_superuser(self, email, username, password, first_name=None, last_name=None, ):
-        user = self.__raw_user(email, username, password, first_name=first_name, last_name=last_name, )
+        if not valid_str(password):
+            # password was not provided
+            raise ValueError('superuser password is required')
+        user = self.create_user(email, username, password, first_name=first_name, last_name=last_name, )
         user.is_active = True
         user.is_staff = True
         user.is_superuser = True
         user.is_verified = True
-        user.save(auto_hash_password=True, using=self._db)
+        user.save(using=self._db)
         return user
 
-    def __raw_user(self, email, username, password, surname=None, first_name=None, last_name=None,
-                   mobile_number=None, date_of_birth=None, provider=None, ):
+    def __user(self, email, username, password, surname=None, first_name=None, last_name=None,
+               mobile_number=None, date_of_birth=None, provider=None, ):
         if not valid_str(email):
             raise ValueError('email is required')
         return self.model(
@@ -81,7 +85,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     __DEVICE_IP = None
     __NEWBIE_GP = XAUTH.get('NEWBIE_VALIDITY_PERIOD', timedelta(days=1))
-    __AUTO_HASH = XAUTH.get('AUTO_HASH_PASSWORD_ON_SAVE', True)
     __ENFORCE_ACCOUNT_VERIFICATION = XAUTH.get('ENFORCE_ACCOUNT_VERIFICATION', True)
     __PROVIDERS = [(k, k) for k, _ in enums.AuthProvider.__members__.items()]
     __DEFAULT_PROVIDER = enums.AuthProvider.EMAIL.name
@@ -131,17 +134,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __repr__(self):
         return json.dumps(self.token_payload())
 
-    def save(self, auto_hash_password=__AUTO_HASH, *args, **kwargs):
+    def save(self, *args, **kwargs):
         """
         use email as the username if it wasn't provided
-        :param auto_hash_password if True, `self.password` will be hashed before saving to database. Default(`False`)
         """
         # TODO: split name if contains space to surname, firstname, lastname
         self.provider = self.provider if valid_str(self.provider) else self.__DEFAULT_PROVIDER
         _username = self.username
         self.username = self.normalize_username(_username if _username and len(_username) > 0 else self.email)
-        if auto_hash_password is True:
-            self.__reinitialize_password_with_hash()
+        if not valid_str(self.password):
+            # do not store a null(None) password
+            self.set_unusable_password()
         self.is_verified = self.__get_ascertained_verification_status()
         reset_empty_nullable_to_null(self, self.NULLABLE_FIELDS)
         super(User, self).save(*args, **kwargs)
@@ -331,9 +334,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if metadata.check_temporary_password(raw_password=temporary_password):
             # temporary password matched(correct)
             # update user's password
-            self.password = new_password
+            self.password = self.get_hashed(new_password)
             # prevent hashing of other irrelevant table column(s)
-            self.save(auto_hash_password=True, update_fields=['password'])
+            self.save(update_fields=['password'])
             # reset temporary password & password generation time to None
             metadata.temporary_password = None
             metadata.tp_gen_time = None
@@ -364,7 +367,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             # update user's verification status
             self.is_verified = True
             # prevent's automatic hashing of irrelevant password
-            self.save(auto_hash_password=False, update_fields=['is_verified'])
+            self.save(update_fields=['is_verified'])
             # reset verification code & code generation time to None
             metadata.verification_code = None
             metadata.vc_gen_time = None
@@ -390,7 +393,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         if metadata.check_security_question_answer(raw_answer=security_question_answer):
             # answer was correct, activate account
             self.is_active = True
-            self.save(auto_hash_password=False, update_fields=['is_active'])
+            self.save(update_fields=['is_active'])
             return self.token, None
         else:
             # wrong answer
@@ -561,34 +564,22 @@ class User(AbstractBaseUser, PermissionsMixin):
                 payload[field] = val
         return payload
 
-    def _hash_code(self, raw_code):
+    def get_hashed(self, raw):
         """
         Uses `settings.PASSWORD_HASHERS` to create and return a hashed `code` just like creating a hashed
         password
 
-        :param raw_code: data to be hashed. Provide None to set an unusable hash code(password)
+        :param raw: data to be hashed. Provide None to set an unusable hash code(password)
         :return: hashed version of `code`
         """
         # temporarily hold the user's password
         acc_password = self.password
         # hash the code. will reinitialize the password
-        self.set_unusable_password() if raw_code is None else self.set_password(raw_code)
+        self.set_password(raw) if valid_str(raw) else self.set_unusable_password()
         code = self.password  # hashed code retrieved from password
         # re-[instate|initialize] user's password to it's previous value
         self.password = acc_password
         return code
-
-    def __reinitialize_password_with_hash(self):
-        _password = self.password
-        if valid_str(_password):
-            # password was provided
-            self.set_password(_password)
-        else:
-            # password was not provided
-            if self.is_superuser:
-                # raise error for superuser accounts without password
-                raise ValueError('superuser password is required')
-            self.set_unusable_password()
 
     def __get_ascertained_verification_status(self):
         """
@@ -644,9 +635,9 @@ class Metadata(models.Model):
         raw_code = self.verification_code
         raw_password = self.temporary_password
         if valid_str(raw_code):
-            self.verification_code = self._hash_code(raw_code)
+            self.verification_code = self._get_hashed(raw_code)
         if valid_str(raw_password):
-            self.temporary_password = self._hash_code(raw_password)
+            self.temporary_password = self._get_hashed(raw_password)
         self.__reinitialize_security_answer()
         super(Metadata, self).save(*args, **kwargs)
 
@@ -687,8 +678,8 @@ class Metadata(models.Model):
         return user.has_usable_password()
 
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    def _hash_code(self, raw_code):
-        return self.user._hash_code(raw_code)
+    def _get_hashed(self, raw):
+        return self.user.get_hashed(raw)
 
     # noinspection PyUnresolvedReferences
     def __verify_this_against_other_code(self, this, other):
@@ -698,7 +689,7 @@ class Metadata(models.Model):
 
     # noinspection PyUnresolvedReferences
     def __reinitialize_security_answer(self):
-        hashed_answer = self._hash_code(self.security_question_answer)
+        hashed_answer = self._get_hashed(self.security_question_answer)
         meta = self.user.metadata
         if meta.security_question.usable:
             # providing an answer only makes sense if the question being answered
@@ -772,6 +763,6 @@ class FailedSignInAttempt(models.Model):
                 # maximum attempts reached. deactivate account
                 self.user.is_active = False
                 # noinspection PyUnresolvedReferences
-                self.user.save(auto_hash_password=False)
+                self.user.save()
             return rem
         return -1

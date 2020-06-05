@@ -54,7 +54,7 @@ class UserTestCase(APITestCase):
         user = get_user_model().objects.create_user(email='user@mail-domain.com', username='user123', )
         user.is_verified = True
         user.is_active = False
-        user.save(auto_hash_password=False)
+        user.save()
         # updates user's metadata
         meta = update_metadata(user, sec_quest=self.security_quest, sec_ans=correct_fav_color)
         return meta, user
@@ -137,10 +137,11 @@ class UserTestCase(APITestCase):
     def test_check_password_for_created_user_returns_True(self):
         password = 'password123!'
         user = get_user_model().objects.create(email='user@mail-domain.com', )
-        user.password = password
-        user.save(auto_hash_password=True)
-        user1 = User(email='user1@mail-domain.com', password=password)
-        user1.save(auto_hash_password=True)
+        user.password = user.get_hashed(password)
+        user.save()
+        user1 = User(email='user1@mail-domain.com')
+        user1.password = user1.get_hashed(password)
+        user1.save()
 
         self.assertEqual(user.check_password(password), True)
         self.assertEqual(user1.check_password(password), True)
@@ -258,7 +259,7 @@ class UserTestCase(APITestCase):
         user = get_user_model().objects.create_user(email='user@mail-domain.com', username='user123', )
         self.assertIs(user.is_verified, False)
         user.is_verified = True
-        user.save(auto_hash_password=False, update_fields=['is_active'])
+        user.save(update_fields=['is_active'])
         self.assertIs(user.is_verified, True)
         self.assertIs(user.has_usable_password(), False)
         _, correct_password = user.request_password_reset(send_mail=False)
@@ -311,7 +312,7 @@ class UserTestCase(APITestCase):
         password = 'password'
         user = get_user_model().objects.create_user(email='user@mail-domain.com', username='user123', password=password)
         user.is_verified = True
-        user.save(auto_hash_password=False)
+        user.save()
         token, code = user.request_verification(send_mail=False)
 
         self.assertIs(user.is_verified, True)
@@ -323,7 +324,7 @@ class UserTestCase(APITestCase):
         password = 'password'
         user = get_user_model().objects.create_user(email='user@mail-domain.com', username='user123', password=password)
         user.is_verified = True
-        user.save(auto_hash_password=False)
+        user.save()
         token, message = user.verify('123456')
 
         self.assertIs(user.is_verified, True)

@@ -12,7 +12,7 @@ Returns payload from `token`'s JWT claims.
 ## refresh()
 **Type:** `dict`
 
-Does the token signing and encryption. Re-initializes [`normal`][properties-normal-url] and 
+Recreates tokens(normal and encrypted). Re-initializes [`normal`][properties-normal-url] and 
 [`encrypted`][properties-encrypted-url] properties and returns `dict` of [`tokens`][properties-tokens-url].
 
 [properties-tokens-url]: /api-guide/classes/token/properties/#tokens
