@@ -66,7 +66,7 @@ REST_FRAMEWORK = {
         'xauth.authentication.BasicTokenAuthentication',
         ...,
     ],
-    'EXCEPTION_HANDLER': 'xauth.utils.exceptions.xauth_exception_handler',
+    'EXCEPTION_HANDLER': 'xauth.utils.exceptions.exception_handler',
 }
 ```
 - Include the xauth URLconf in your project `urls.py` like this

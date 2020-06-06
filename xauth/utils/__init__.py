@@ -22,17 +22,11 @@ def reset_empty_nullable_to_null(obj, fields):
     :param obj: object(class instance) containing attributes in `field`
     :param fields: an iterable(list/tuple) of string names of attributes contained in 
     `self`
-    :return: list of attribute names that raised AttributeError in the process
     """
-    failed = []
     for f in fields:
-        try:
-            val = getattr(obj, f)
-            if isinstance(val, str) and not valid_str(val):
-                setattr(obj, f, None)
-        except AttributeError:
-            failed.append(f)
-    return failed
+        val = getattr(obj, f)
+        if isinstance(val, str) and not valid_str(val):
+            setattr(obj, f, None)
 
 
 def get_204_wrapped_response(r: drf_response.Response):

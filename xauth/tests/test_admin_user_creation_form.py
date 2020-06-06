@@ -1,4 +1,3 @@
-from django import forms
 from django.test.testcases import TestCase
 
 from xauth import admin
@@ -29,12 +28,9 @@ class UserCreationFormTestCase(TestCase):
         self.assertIs(form.is_valid(), True)
 
     def test_form_is_valid_with_un_similar_passwords_equals_False(self):
-        try:
-            self.data['password2'] = f'{self.data.get("password1", "password")}2'
-            form = admin.UserCreationForm(data=self.data)
-            self.assertIs(form.is_valid(), False)
-        except forms.ValidationError:
-            self.assertIs(1, 1)
+        self.data['password2'] = f'{self.data.get("password1", "password")}2'
+        form = admin.UserCreationForm(data=self.data)
+        self.assertIs(form.is_valid(), False)
 
     def test_clean_password2_raises_ValidationError_if_password1_not_same_as_password2(self):
         self.data['password2'] = f'{self.data.get("password1", "password")}2'

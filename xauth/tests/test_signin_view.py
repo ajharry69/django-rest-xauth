@@ -23,10 +23,8 @@ class SignInViewTestCase(APITestCase):
         response = self.client.post(reverse('xauth:signin'), )
         response_data = response.data
         self.assertEqual(response.status_code, expect_status_code)
-        if expect_null_payload:
-            self.assertIsNotNone(get_response_data_message(response))
-        else:
-            self.assertIsNotNone(get_response_data_payload(response))
+        self.assertIsNotNone(
+            get_response_data_message(response) if expect_null_payload else get_response_data_payload(response))
 
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(

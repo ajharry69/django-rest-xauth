@@ -26,8 +26,8 @@ class ProfileViewTestCase(UserAPITestCase):
             'is_verified': self.user.is_verified,
             'created_at': self.user.created_at,
         }
-        for key in removable_keys:
-            data.pop(key)
+        # for key in removable_keys:
+        #     data.pop(key)
         return data
 
     def patch_user_data(self, removable_keys: list = None):
@@ -40,8 +40,8 @@ class ProfileViewTestCase(UserAPITestCase):
             "last_name": self.user.last_name,
             "mobile_number": self.user.mobile_number,
         }
-        for key in removable_keys:
-            data.pop(key)
+        # for key in removable_keys:
+        #     data.pop(key)
         return data
 
     def assert_request_methods_status_codes(self, put_patch_code=status.HTTP_200_OK,

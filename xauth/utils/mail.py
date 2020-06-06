@@ -1,7 +1,5 @@
-import smtplib
-import socket
-
 from xauth.tasks import send_mail_async
+from . import valid_str
 from .settings import *
 
 
@@ -14,13 +12,7 @@ class Mail:
 
         def __init__(self, plain: str, formatted: str = None):
             self.plain = plain
-            if not formatted:
-                # formatted not provided, use plain as alternative
-                formatted = plain
-            self.formatted = formatted
-
-        # def __repr__(self):
-        #     return json.dumps(self.__dict__)
+            self.formatted = formatted if valid_str(formatted) else plain
 
     class Address:
         """
@@ -33,17 +25,8 @@ class Mail:
 
         def __init__(self, recipients=None, sender: str = ACCOUNTS_EMAIL,
                      reply_to: list = REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES):
-            if recipients is None:
-                _recipients = []
-            if not isinstance(recipients, tuple) or not isinstance(recipients, list):
-                _recipients = [recipients]
-            else:
-                if isinstance(recipients, list):
-                    _recipients = recipients
-                else:
-                    _recipients = list(recipients)
-
-            self.recipients = _recipients
+            __is_not_iterable = not isinstance(recipients, tuple) or not isinstance(recipients, list)
+            self.recipients = list(recipients) if __is_not_iterable else recipients
             self.sender = sender
             self.reply_to = reply_to
 
@@ -112,9 +95,4 @@ discard or ignore this email.</{e}>"""
         :param subject: Title of the email
         """
 
-        try:
-            send_mail_async(subject, body.plain, body.formatted, address.recipients, address.sender, address.reply_to)
-        except socket.gaierror:
-            pass
-        except smtplib.SMTPException:
-            pass
+        send_mail_async(subject, body.plain, body.formatted, address.recipients, address.sender, address.reply_to)

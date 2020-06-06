@@ -1,7 +1,7 @@
 import re
 
 from django.utils.datetime_safe import datetime
-from rest_framework import views, response as drf_response
+from rest_framework import views
 
 from xauth.utils import valid_str
 from xauth.utils.response import APIResponse
@@ -35,20 +35,17 @@ def text_with_dated_timestamps(txt: str):
         st = re.split(r'\d{10}', txt)
         tts = timestamps_to_dates(timestamps_extractor(txt))
 
-        if len(st) > 1:
-            st.insert(1, tts[0])
-        if len(st) > 3:
-            st.insert(3, tts[1])
+        # if len(st) > 1:
+        #     st.insert(1, tts[0])
+        # if len(st) > 3:
+        #     st.insert(3, tts[1])
         return ''.join(st)
     except TypeError as te:
         return None
 
 
-def xauth_exception_handler(exception, context):
+def exception_handler(exception, context):
     response = views.exception_handler(exception, context)
-
-    if response is None:
-        return response
 
     erd = response.data
     __field_detail = 'detail'
@@ -58,9 +55,9 @@ def xauth_exception_handler(exception, context):
         # Update response's data dictionary
         erd.update(api_response.response())
         del response.data[__field_detail]
-    if isinstance(erd, list):
-        api_response = wrap_error_response('#'.join(erd), response)
-        return drf_response.Response(api_response.response(), status=response.status_code)
+    # if isinstance(erd, list):
+    #     api_response = wrap_error_response('#'.join(erd), response)
+    #     return drf_response.Response(api_response.response(), status=response.status_code)
 
     return response
 
