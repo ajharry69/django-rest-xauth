@@ -166,10 +166,12 @@ XAUTH = {
     # attempts upon which account is to be deactivated after failed sign-in attempts is reached.
     # 0 or less means no limit
     'MAXIMUM_SIGN_IN_ATTEMPTS': 0,
-    'VERIFICATION_ENDPOINT': 'verification-code/verify/',
-    'PASSWORD_RESET_ENDPOINT': 'password-reset/verify/',
-    'ACTIVATION_ENDPOINT': 'activation/activate/',
     'USER_PROFILE_SERIALIZER': 'xauth.serializers.ProfileSerializer',
+    'USER_LOOKUP_FIELD': 'pk',
+    'PROFILE_ENDPOINT': 'profile/(?P<pk>[0-9]+)/',
+    'VERIFICATION_ENDPOINT': 'verification/confirm/',
+    'PASSWORD_RESET_ENDPOINT': 'password/reset/confirm/',
+    'ACTIVATION_ENDPOINT': 'activation/confirm/',
 }
 
 AUTH_USER_MODEL = 'xauth.User'

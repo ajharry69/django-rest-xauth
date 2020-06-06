@@ -1,28 +1,68 @@
-from django.urls import path, include
+from django.urls import include, re_path
 from rest_framework import routers
 
 from xauth import views
 from xauth.utils.settings import *
 
-router = routers.DefaultRouter()
-router.register(r'security-questions', views.SecurityQuestionView)
-
-verification_ep = str(XAUTH.get('ACTIVATION_ENDPOINT', 'activation/activate/'))
-password_reset_ep = str(XAUTH.get('PASSWORD_RESET_ENDPOINT', 'password-reset/verify/'))
-activation_ep = str(XAUTH.get('VERIFICATION_ENDPOINT', 'verification-code/verify/'))
+__router = routers.DefaultRouter()
+__router.register(r'security-questions', views.SecurityQuestionView)
 
 app_name = 'xauth'
 urlpatterns = [
-    path('', include(router.urls)),
-    path('signout/', view=views.SignOutView.as_view(), name='signout'),
-    path('signin/', view=views.SignInView.as_view(), name='signin'),
-    path('signup/', view=views.SignUpView.as_view(), name='signup'),
-    path('profile/<int:pk>/', view=views.ProfileView.as_view(), name='profile'),
-    path(verification_ep, view=views.VerificationCodeVerifyView.as_view(), name='verification-code-verify'),
-    path('verification-code/request/', view=views.VerificationCodeRequestView.as_view(), name='verification-code-send'),
-    path(password_reset_ep, view=views.PasswordResetView.as_view(), name='password-reset-verify'),
-    path('password-reset/request/', view=views.PasswordResetRequestView.as_view(), name='password-reset-send'),
-    path('security-question/add/', view=views.AddSecurityQuestionView.as_view(), name='security-question-add'),
-    path('activation/request/', view=views.AccountActivationRequestView.as_view(), name='activation-request'),
-    path(activation_ep, view=views.AccountActivationView.as_view(), name='activation-activate'),
+    re_path(r'^', include(__router.urls)),
+    re_path(
+        r'^signout/',
+        view=views.SignOutView.as_view(),
+        name='signout',
+    ),
+    re_path(
+        r'^signin/',
+        view=views.SignInView.as_view(),
+        name='signin',
+    ),
+    re_path(
+        r'^signup/',
+        view=views.SignUpView.as_view(),
+        name='signup',
+    ),
+    re_path(
+        r'^%s' % PROFILE_ENDPOINT,
+        view=views.ProfileView.as_view(),
+        name='profile',
+    ),
+    re_path(
+        r'^verification/request/',
+        view=views.VerificationRequestView.as_view(),
+        name='verification-request',
+    ),
+    re_path(
+        r'^%s' % VERIFICATION_ENDPOINT,
+        view=views.VerificationConfirmView.as_view(),
+        name='verification-confirm',
+    ),
+    re_path(
+        r'^password/reset/request/',
+        view=views.PasswordResetRequestView.as_view(),
+        name='password-reset-request',
+    ),
+    re_path(
+        r'^%s' % PASSWORD_RESET_ENDPOINT,
+        view=views.PasswordResetConfirmView.as_view(),
+        name='password-reset-confirm',
+    ),
+    re_path(
+        r'^activation/request/',
+        view=views.ActivationRequestView.as_view(),
+        name='activation-request',
+    ),
+    re_path(
+        r'^%s' % ACTIVATION_ENDPOINT,
+        view=views.ActivationConfirmView.as_view(),
+        name='activation-confirm',
+    ),
+    re_path(
+        r'^security-question/add/',
+        view=views.AddSecurityQuestionView.as_view(),
+        name='security-question-add',
+    ),
 ]

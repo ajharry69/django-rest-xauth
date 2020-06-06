@@ -5,11 +5,11 @@ from rest_framework import serializers
 
 from xauth.models import SecurityQuestion
 from xauth.utils import valid_str
-from xauth.utils.settings import XAUTH
+from xauth.utils.settings import XAUTH, USER_LOOKUP_FIELD
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile')
+    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile', lookup_field=USER_LOOKUP_FIELD, )
 
     # groups = serializers.HyperlinkedRelatedField(view_name='group-detail', many=True, read_only=True)
 

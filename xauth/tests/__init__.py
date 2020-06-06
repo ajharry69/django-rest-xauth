@@ -112,7 +112,7 @@ class UserAPITestCase(APITestCase):
         )
 
 
-class CodeVerificationAPITestCase(UserAPITestCase):
+class ChangeConfirmationAPITestCase(UserAPITestCase):
 
     def code_password_verification(self, response, token):
         from django.utils.datetime_safe import datetime

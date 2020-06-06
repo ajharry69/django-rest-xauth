@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from xauth.tests import *
 
 
-class AccountActivationRequestViewTestCase(SecurityQuestionAPITestCase):
+class ActivationRequestViewTestCase(SecurityQuestionAPITestCase):
 
     def assert_correct_username_response(self, user, activation_methods):
         response = self.client.post(reverse('xauth:activation-request'), data={

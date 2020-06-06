@@ -8,10 +8,6 @@ from rest_framework import authentication as drf_auth, exceptions as drf_excepti
 from xauth.utils import valid_str, settings
 from xauth.utils.token import Token
 
-verification_ep = str(settings.XAUTH.get('ACTIVATION_ENDPOINT', 'activation/activate/'))
-password_reset_ep = str(settings.XAUTH.get('PASSWORD_RESET_ENDPOINT', 'password-reset/verify/'))
-activation_ep = str(settings.XAUTH.get('VERIFICATION_ENDPOINT', 'verification-code/verify/'))
-
 
 class BasicTokenAuthentication(drf_auth.BaseAuthentication):
     """
@@ -64,11 +60,11 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
             user_payload = claims.get(tk.payload_key, {})
             user_id = user_payload.get('id', None) if isinstance(user_payload, dict) else user_payload
             subject = claims.get('sub', 'access')
-            if verification_ep in request_url and subject != 'account-verification':
+            if settings.VERIFICATION_ENDPOINT in request_url and subject != 'account-verification':
                 raise jwe.JWException(f'tokens subject is restricted to {subject}')
-            elif activation_ep in request_url and subject != 'account-activation':
+            elif settings.ACTIVATION_ENDPOINT in request_url and subject != 'account-activation':
                 raise jwe.JWException(f'tokens subject is restricted to {subject}')
-            elif password_reset_ep in request_url and subject != 'password-reset':
+            elif settings.PASSWORD_RESET_ENDPOINT in request_url and subject != 'password-reset':
                 raise jwe.JWException(f'tokens subject is restricted to {subject}')
             else:
                 try:
@@ -190,7 +186,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
     def __get_wrapped_authentication_response(self, addresses_str, user, auth, request_url):
         if not user:
             return None
-        if user.is_active or activation_ep in request_url:
+        if user.is_active or settings.ACTIVATION_ENDPOINT in request_url:
             user.device_ip = self.get_client_ip(addresses_str)
             return user, auth
         raise drf_exception.AuthenticationFailed('account was deactivated')

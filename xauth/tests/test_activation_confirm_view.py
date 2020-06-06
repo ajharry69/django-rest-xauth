@@ -6,7 +6,7 @@ from xauth.tests import *
 
 
 @override_settings(XAUTH={'WRAP_DRF_RESPONSE': True, }, )
-class AccountActivationViewTestCase(SecurityQuestionAPITestCase):
+class ActivationConfirmViewTestCase(SecurityQuestionAPITestCase):
 
     def setUp(self) -> None:
         super().setUp()
@@ -18,7 +18,7 @@ class AccountActivationViewTestCase(SecurityQuestionAPITestCase):
     def test_account_activation_with_correct_answer_returns_200(self):
         token = self.user.token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post(reverse('xauth:activation-activate'), data={
+        response = self.client.post(reverse('xauth:activation-confirm'), data={
             'answer': self.correct_security_question_answer,
         })
 
@@ -31,7 +31,7 @@ class AccountActivationViewTestCase(SecurityQuestionAPITestCase):
     def test_account_activation_with_incorrect_answer_returns_400(self):
         token = self.user.token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = self.client.post(reverse('xauth:activation-activate'), data={
+        response = self.client.post(reverse('xauth:activation-confirm'), data={
             'answer': 'yellow',
         }, )
 

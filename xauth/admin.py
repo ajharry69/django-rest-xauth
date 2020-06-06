@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.utils.translation import gettext_lazy as _
 
 from .models import User, SecurityQuestion, Metadata
 
@@ -13,6 +14,10 @@ class MetadataInline(admin.StackedInline):
 
 
 class UserCreationForm(forms.ModelForm):
+    """
+    A form for creating new users. Includes all the required
+    fields, plus a repeated password.
+    """
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
     password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput)
 
@@ -20,16 +25,18 @@ class UserCreationForm(forms.ModelForm):
         model = User
         fields = ('username', 'email', 'surname', 'first_name', 'last_name', 'date_of_birth', 'mobile_number',)
 
-    def clean_password2(self, ):
+    def clean_password2(self):
+        """check that two password entries match"""
         p1 = self.cleaned_data.get('password1')
         p2 = self.cleaned_data.get('password2')
 
         if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Passwords do not match")
+            raise forms.ValidationError(_("passwords do not match"), code='password_mismatch')
 
         return p2
 
     def save(self, commit=True):
+        """save the user and provided password in hashed format"""
         user = super().save(commit=False)  # `commit=False` Helps avoid double database writes
         user.set_password(self.cleaned_data.get('password2'))
 
@@ -40,6 +47,11 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserUpdateForm(forms.ModelForm):
+    """
+    A form for updating users. Includes all the fields on
+    the user, but replaces the password field with admin's
+    password hash display field.
+    """
     password = ReadOnlyPasswordHashField
 
     class Meta:
@@ -48,6 +60,9 @@ class UserUpdateForm(forms.ModelForm):
                   'provider', 'is_superuser', 'is_staff', 'is_verified', 'is_active', 'password',)
 
     def clean_password(self):
+        # Regardless of what the user provides, return the initial value.
+        # This is done here, rather than on the field, because the
+        # field does not have access to the initial value
         return self.initial.get('password')
 
 

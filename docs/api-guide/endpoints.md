@@ -2,8 +2,12 @@
 `X-Forwarded-For` header with request device's **ip-address** is required if access, failed sign-in attempts or password
  reset logging is expected at granular level.
 
+**NOTE:** all endpoints are configurable using regular expression syntax(without `^` as prefix; it is added by default).
+
 ## Registration/Sign-up
 **Default:** `signup/`
+
+**Name:** `signup`
 
 **Method:** `POST`
 
@@ -28,6 +32,8 @@
 ## Login/Sign-in
 **Default:** `signin/`
 
+**Name:** `signin`
+
 **Method:** `POST`
 
 **Expected Data:** `username` and `password` or None(no POST request data) when `Authorization` header with 
@@ -41,6 +47,8 @@ request data is provided.
 ## Logout/Sign-out
 **Default:** `signout/`
 
+**Name:** `signout`
+
 **Method:** `POST`
 
 **Expected Data:** None
@@ -50,21 +58,28 @@ request data is provided.
 2. **Authorization:** `Bearer <encrypted-access-token>` or `Basic <credentials>`
 
 ## Profile
-**Default:** `profile/{id}/`
+**Default:** `profile/(?P<pk>[0-9]+)/`
+
+**Name:** `profile`
 
 **Methods:** `GET`, `PUT`, `PATCH` or `DELETE`
 
 **Expected Data:** Only necessary for `PUT` and `PATCH` methods.
 
-**NOTE:** `GET` is by default allowed to everyone(even non-authenticated users) while `PUT`, `PATCH` or `DELETE` is 
-restricted to the account owner(determined by the credentials provided in `Authorization` header) or the superuser.
+**NOTE:**
+- `GET` is by default allowed to everyone(even non-authenticated users) while `PUT`, `PATCH` or `DELETE` is restricted 
+to the account owner(determined by the credentials provided in `Authorization` header) or the superuser.
+- `pk` in the endpoint is the default [`USER_LOOKUP_FIELD`][user-lookup-field-url] setting. Changing it will require a 
+change on the same setting too.
 
 ### Request Headers
 1. **Content-Type:** `application/json`(subject to above **expected data** condition)
 2. **Authorization:** `Bearer <encrypted-access-token>` or `Basic <credentials>`
 
-## Verification code request
-**Default:** `verification-code/request/`
+## Verification request
+**Default:** `verification/request/`
+
+**Name:** `verification-request`
 
 **Method:** `POST`
 
@@ -74,8 +89,10 @@ restricted to the account owner(determined by the credentials provided in `Autho
 1. **Content-Type:** `application/x-www-form-urlencoded`
 2. **Authorization:** `Bearer <encrypted-verification-token>` or `Basic <credentials>`
 
-## Verification code verification
-**Default:** `verification-code/verify/`
+## Verification confirmation
+**Default:** `verification/confirm/`
+
+**Name:** `verification-confirm`
 
 **Method:** `POST`
 
@@ -86,7 +103,9 @@ restricted to the account owner(determined by the credentials provided in `Autho
 2. **Authorization:** `Bearer <encrypted-verification-token>` or `Basic <credentials>`
 
 ## Password reset request
-**Default:** `password-reset/request/`
+**Default:** `password/reset/request/`
+
+**Name:** `password-reset-request`
 
 **Method:** `POST`
 
@@ -95,8 +114,10 @@ restricted to the account owner(determined by the credentials provided in `Autho
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
 
-## Password reset verification
-**Default:** `password-reset/verify/`
+## Password reset confirmation
+**Default:** `password/reset/confirm/`
+
+**Name:** `password-reset-confirm`
 
 **Method:** `POST`
 
@@ -109,6 +130,8 @@ restricted to the account owner(determined by the credentials provided in `Autho
 ## Activation request
 **Default:** `activation/request/`
 
+**Name:** `activation-request`
+
 **Method:** `POST`
 
 **Expected Data:** `username=<username/email-address>` of the user whose account is inactive.
@@ -119,8 +142,10 @@ for the user in question.
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
 
-## Activation verification
-**Default:** `activation/verify/`
+## Activation confirmation
+**Default:** `activation/confirm/`
+
+**Name:** `activation-confirm`
 
 **Method:** `POST`
 
@@ -132,6 +157,8 @@ for the user in question.
 
 ## Add/attach security question
 **Default:** `security-question/add/`
+
+**Name:** `security-question-add`
 
 **Method:** `POST`
 
@@ -148,8 +175,11 @@ account update).
 ## Retrieve security questions
 **Default:** `security-questions/`
 
+**Name:** `securityquestion-list` or `securityquestion-detail`
+
 **Method:** `GET`
 
 **NOTE:** Authorization is not necessary for this.
 
+[user-lookup-field-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/endpoints/#USER_LOOKUP_FIELD
 [basic-auth-scheme]: https://en.wikipedia.org/wiki/Basic_access_authentication

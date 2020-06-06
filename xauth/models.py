@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta, date
 
 import timeago
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.utils.datetime_safe import date as dj_date, datetime as dj_datetime

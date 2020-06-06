@@ -25,7 +25,7 @@ types that can then be easily rendered into JSON, XML or other content types. Mo
 **Note:** `fields` declared in this serializer will be inherited by `xauth.serializer.SignUpSerializer` with addition 
 of `password` field that is only relevant for sign-up.
 
-### Conditions
+### Guidelines
 `django-rest-xauth` makes the following assumptions of the serializer class it expects from this setting:
 
  1. It is a direct or indirect subclass of `rest_framework.serializers.Serializer`.
@@ -119,14 +119,14 @@ the `django-rest-xauth` should be channelled.
 ## VERIFICATION_CODE_LENGTH
 **Type**: `int`
 
-**Default**: 6
+**Default**: `6`
 
 **Usage**: determines the length of the generated verification code(sent to user) to be used for account verification.
 
 ## TEMPORARY_PASSWORD_LENGTH
 **Type**: `int`
 
-**Default**: 8
+**Default**: `8`
 
 **Usage**: determines the length of the generated temporary password(sent to user) to be used for password reset.
 
@@ -158,14 +158,14 @@ the `django-rest-xauth` should be channelled.
 ## POST_REQUEST_USERNAME_FIELD
 **Type**: `str`
 
-**Default**: 'username'
+**Default**: `username`
 
 **Usage**: used to retrieve `username` from a POST request sign-in/login.
 
 ## POST_REQUEST_PASSWORD_FIELD
 **Type**: `str`
 
-**Default**: 'password'
+**Default**: `password`
 
 **Usage**: used to retrieve `password` from a POST request sign-in/login. 
 
@@ -179,15 +179,32 @@ the `django-rest-xauth` should be channelled.
 ## MAXIMUM_SIGN_IN_ATTEMPTS
 **Type**: `int`
 
-**Default**: 0
+**Default**: `0`
 
 **Usage**: attempts upon which account is to be deactivated after failed sign-in attempts is reached. Value of `0` or 
 less means no limit should be enforced hence no account deactivation due to sign-in attempts limit.
 
+## USER_LOOKUP_FIELD
+**Type**: `str`
+
+**Default**: `pk`. Should be one of `xauth.models.User` **unique** [fields][user-model-fields-url] e.g. 'pk', 'id', 
+'username' e.t.c
+
+**Usage**: used together with [PROFILE_ENDPOINT][profile-endpoint-setting-url] setting to build up a single user profile
+hence a change to either setting would require a change on the other as they are mutually inclusive.
+
+## PROFILE_ENDPOINT
+**Type**: `str`
+
+**Default**: `profile/(?P<pk>[0-9]+)/`
+
+**Usage**: used together with [USER_LOOKUP_FIELD][user-lookup-field-setting-url] setting to build up a single user profile
+hence a change to either setting would require a change on the other as they are mutually inclusive.
+
 ## VERIFICATION_ENDPOINT
 **Type**: `str`
 
-**Default**: 'verification-code/verify/'
+**Default**: `verification/confirm/`
 
 **Usage**: used to create a url through which account verification code should be verified/validated for correctness 
 before account is considered verified.
@@ -195,7 +212,7 @@ before account is considered verified.
 ## PASSWORD_RESET_ENDPOINT
 **Type**: `str`
 
-**Default**: 'password-reset/verify/'
+**Default**: `password/reset/confirm/`
 
 **Usage**: used to create a url through which password-reset temporary password should be verified/validated for 
 correctness before user's password is changed to a new one(provided through a **POST** request in the same url).
@@ -203,7 +220,7 @@ correctness before user's password is changed to a new one(provided through a **
 ## ACTIVATION_ENDPOINT
 **Type**: `str`
 
-**Default**: 'activation/activate/'
+**Default**: `activation/confirm/`
 
 **Usage**: used to create a url through which user's security question's answer will be verified/validated for 
 correctness before account is considered activated.
@@ -211,3 +228,6 @@ correctness before account is considered activated.
 [basic-auth-scheme]: https://en.wikipedia.org/wiki/Basic_access_authentication
 [drf-serializer-url]: https://www.django-rest-framework.org/api-guide/serializers/
 [drf-serializer-tutorial-url]: https://www.django-rest-framework.org/tutorial/1-serialization/
+[user-model-fields-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/classes/user/properties/
+[user-lookup-field-setting-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/settings/#USER_LOOKUP_FIELD
+[profile-endpoint-setting-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/settings/#PROFILE_ENDPOINT

@@ -4,12 +4,12 @@ from rest_framework.reverse import reverse
 from xauth.tests import *
 
 
-class VerificationCodeVerifyViewTestCase(CodeVerificationAPITestCase):
+class VerificationConfirmViewTestCase(ChangeConfirmationAPITestCase):
     def test_verification_with_correct_code_returns_200(self):
         token, correct_code = self.user.request_verification(send_mail=False)
         verification_token = self.user.token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {verification_token}')
-        response = self.client.post(reverse('xauth:verification-code-verify'), data={
+        response = self.client.post(reverse('xauth:verification-confirm'), data={
             'code': correct_code
         })
 
@@ -23,7 +23,7 @@ class VerificationCodeVerifyViewTestCase(CodeVerificationAPITestCase):
     def test_verification_with_incorrect_code_returns_400(self):
         verification_token = self.user.token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {verification_token}')
-        response = self.client.post(reverse('xauth:verification-code-verify'), data={
+        response = self.client.post(reverse('xauth:verification-confirm'), data={
             'code': '123456'  # should be wrong! 1 is not expected to be part of generated code
         }, )
 

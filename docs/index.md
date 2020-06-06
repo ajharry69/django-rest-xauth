@@ -44,9 +44,10 @@ Most of the package's features are designed to be independently usable and custo
 >`AUTH_USER_MODEL` to your model name as [explained here][django-auth-user-model-setting-url].
 
 ## Quick start
-Add the following to your Django project's `settings.py` file
-
 - Install package `pip install django-rest-xauth`
+
+### Modify your Django project's `settings.py` file
+
 - Add **xauth** to your `INSTALLED_APPS` setting like this
 ```python
 INSTALLED_APPS = [
@@ -56,7 +57,7 @@ INSTALLED_APPS = [
 ```
 - Add/modify your `AUTH_USER_MODEL` setting to
 ```python
-AUTH_USER_MODEL = 'xauth.User'
+AUTH_USER_MODEL = 'xauth.User' # Can also be a modified direct subclass of `xauth.models.User`
 ```
 - Add/modify your `REST_FRAMEWORK` setting to
 ```python
@@ -77,14 +78,11 @@ urlpatterns = [
 ```
 - Run `python manage.py migrate` to create the xauth models.
 - Run `python manage.py createsuperuser` to create a superuser account.
-- Start the development server and visit http://127.0.0.1:8000/accounts/signup/ to register a new account.
-
-## API endpoints
-Read more [here][documentation-endpoints-url].
+- Run `python manage.py runserver` to start the development server.
+- Visit `http://127.0.0.1:8000/accounts/signup/` to register a new account.
 
 ## Contributing
 Please be sure to review [contributing guidelines](about/contributing.md) to learn how to help the project.
 
 [django-auth-user-model-setting-url]: https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 [django-customizing-user-model-url]: https://docs.djangoproject.com/en/dev/topics/auth/customizing/
-[documentation-endpoints-url]: /api-guide/endpoints/

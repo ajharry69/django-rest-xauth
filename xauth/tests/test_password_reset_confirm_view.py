@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from xauth.tests import *
 
 
-class PasswordResetVerifyViewTestCase(CodeVerificationAPITestCase):
+class PasswordResetConfirmViewTestCase(ChangeConfirmationAPITestCase):
 
     def test_reset_password_with_correct_temporary_password_returns_200(self):
         token, correct_temporary_password = self.user.request_password_reset(send_mail=False)
@@ -15,7 +15,7 @@ class PasswordResetVerifyViewTestCase(CodeVerificationAPITestCase):
         self.assertIs(self.user.check_password(self.password), True)
         pr_token = self.user.password_reset_token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {pr_token}')
-        response = self.client.post(reverse('xauth:password-reset-verify'), data={
+        response = self.client.post(reverse('xauth:password-reset-confirm'), data={
             'temporary_password': correct_temporary_password,
             'new_password': new_password,
         })
@@ -30,7 +30,7 @@ class PasswordResetVerifyViewTestCase(CodeVerificationAPITestCase):
         token, correct_temporary_password = self.user.request_password_reset(send_mail=False)
         pr_token = self.user.password_reset_token.encrypted
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {pr_token}')
-        response = self.client.post(reverse('xauth:password-reset-verify'), data={
+        response = self.client.post(reverse('xauth:password-reset-confirm'), data={
             'temporary_password': 'wrong_temporary_password',
             'new_password': 'new_password',
         }, )

@@ -19,6 +19,7 @@ class SecurityQuestionView(viewsets.ModelViewSet):
 
 
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
+    lookup_field = USER_LOOKUP_FIELD
     queryset = get_user_model().objects.all()
     serializer_class = get_serializer_class()
     permission_classes = [IsOwnerOrSuperuserOrReadOnly, ]
@@ -69,7 +70,7 @@ class SignOutView(views.APIView):
         return get_wrapped_response(Response({'success': 'signed out'}, status=status.HTTP_200_OK))
 
 
-class VerificationCodeRequestView(views.APIView):
+class VerificationRequestView(views.APIView):
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = AuthTokenOnlySerializer
 
@@ -81,7 +82,7 @@ class VerificationCodeRequestView(views.APIView):
         return get_wrapped_response(response)
 
 
-class VerificationCodeVerifyView(VerificationCodeRequestView):
+class VerificationConfirmView(VerificationRequestView):
     """
     Attempts to verify authenticated user's verification code(retrieved from a POST request using
     'code' as key).
@@ -96,10 +97,10 @@ class VerificationCodeVerifyView(VerificationCodeRequestView):
 
     def post(self, request, format=None):
         user = request.user
-        operation = request.query_params.get('operation', 'verify').lower()
+        operation = request.query_params.get('operation', 'confirm').lower()
         if re.match('^(re(send|quest)|send)$', operation):
             # new verification code resend or request is been made
-            return super(VerificationCodeVerifyView, self).post(request, format)
+            return super(VerificationConfirmView, self).post(request, format)
         else:
             # verify provided code
             code = request.data.get('code', None)
@@ -132,7 +133,7 @@ class PasswordResetRequestView(views.APIView):
         return get_wrapped_response(Response(data, status=status_code))
 
 
-class PasswordResetView(PasswordResetRequestView):
+class PasswordResetConfirmView(PasswordResetRequestView):
     """
     Attempts to reset(change) authenticated user's password(retrieved from a POST request using
     `temporary_password` as key).
@@ -153,7 +154,7 @@ class PasswordResetView(PasswordResetRequestView):
         if re.match('^(re(send|quest)|send)$', operation):
             # probably a new request for password reset
             # get username to resend the email
-            return super(PasswordResetView, self).post(request, format)
+            return super(PasswordResetConfirmView, self).post(request, format)
         else:
             # reset password
             t_pass = data.get('temporary_password', data.get('old_password', None))
@@ -193,7 +194,7 @@ class AddSecurityQuestionView(views.APIView):
         return get_wrapped_response(response)
 
 
-class AccountActivationRequestView(views.APIView):
+class ActivationRequestView(views.APIView):
     """
     Provides a user with possible account activation methods provided a correct account
     `username` is supplied as part of a POST request.
@@ -227,7 +228,7 @@ class AccountActivationRequestView(views.APIView):
         return True if (metadata and metadata.security_question.usable) else False
 
 
-class AccountActivationView(AccountActivationRequestView):
+class ActivationConfirmView(ActivationRequestView):
     """
     Activates a user's account when provided by a correct `answer` in a POST request with a `answer` as key.
     """
@@ -235,7 +236,7 @@ class AccountActivationView(AccountActivationRequestView):
 
     def post(self, request, format=None):
         user, data = request.user, request.data
-        operation = request.query_params.get('operation', 'activate').lower()
+        operation = request.query_params.get('operation', 'confirm').lower()
         if re.match('^request$', operation):
             # probably a new request for password reset
             # get username to resend the email
