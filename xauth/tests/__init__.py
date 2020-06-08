@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.test import APITestCase
@@ -10,7 +8,7 @@ from xauth.utils.settings import *
 
 def get_response_data_payload(response):
     data = response.data
-    return data.get('payload') if XAUTH.get('WRAP_DRF_RESPONSE', False) else data
+    return data.get('payload') if WRAP_DRF_RESPONSE else data
 
 
 def get_response_data_payload_with_key(response, data_key: str):
@@ -20,6 +18,11 @@ def get_response_data_payload_with_key(response, data_key: str):
 def get_response_data_message(response):
     data = response.data
     return data.get('message', data.get('success', data.get('error', None)))
+
+
+def get_response_data_debug_message(response):
+    data = response.data
+    return data.get('debug_message', None)
 
 
 def get_response_data_metadata(response):

@@ -1,9 +1,7 @@
 import json
 import os
-from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
-from django.utils.encoding import force_str
 from jwcrypto import jwk, jwt
 from jwcrypto.common import json_decode
 
@@ -162,12 +160,10 @@ class Token(TokenKey):
     Defaults to 60days from `activation_date` if an alternative is not provided
     :param payload_key key for `payload` during claims generations
     """
-    __TOKEN_ENCRYPTED = XAUTH.get('REQUEST_TOKEN_ENCRYPTED', True)
 
     def __init__(self, payload, activation_date: datetime = None, expiry_period: timedelta = None,
                  payload_key: str = 'payload', signing_algorithm=JWT_SIG_ALG, subject=None, ):
-        password = XAUTH.get('TOKEN_KEY', force_str(settings.SECRET_KEY))
-        super().__init__(password=password, signing_algorithm=signing_algorithm)
+        super().__init__(password=TOKEN_KEY, signing_algorithm=signing_algorithm)
         self._normal = None
         self._encrypted = None
         self.subject = subject if subject else 'access'
@@ -208,8 +204,7 @@ class Token(TokenKey):
         """
         issue_date = datetime.now()
         self.activation_date = issue_date if not self.activation_date else self.activation_date
-        self.expiry_period = XAUTH.get('TOKEN_EXPIRY',
-                                       timedelta(days=60)) if self.expiry_period is None else self.expiry_period
+        self.expiry_period = TOKEN_EXPIRY if self.expiry_period is None else self.expiry_period
 
         expiry_date = self.activation_date + self.expiry_period
         activation_secs = int(self.activation_date.strftime('%s'))
@@ -239,7 +234,7 @@ class Token(TokenKey):
             self.refresh()
         return dict(normal=self.normal, encrypted=self.encrypted)
 
-    def get_claims(self, token=None, encrypted: bool = __TOKEN_ENCRYPTED):
+    def get_claims(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         token = self.encrypted if not token else token
         assert token is not None, "Call refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
@@ -247,7 +242,7 @@ class Token(TokenKey):
         claims = jwt.JWT(key=self.public_signing_key, jwt=tk).claims
         return json.loads(claims)
 
-    def get_payload(self, token=None, encrypted: bool = __TOKEN_ENCRYPTED):
+    def get_payload(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         try:
             return self.get_claims(token, encrypted).get(self.payload_key, None)
         except AssertionError:

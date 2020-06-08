@@ -125,23 +125,23 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-# EMAIL_HOST = os.environ['EMAIL_HOST']
-#
-# EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
-#
-# EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
-#
-# EMAIL_USE_TLS = True
-#
-# EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get('EMAIL_HOST', settings.EMAIL_HOST)
 
-EMAIL_PORT = 1025
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', settings.EMAIL_HOST_USER)
+
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', settings.EMAIL_HOST_PASSWORD)
+
+EMAIL_USE_TLS = True
+
+EMAIL_PORT = 587
+
+# EMAIL_PORT = 1025
 
 EMAIL_TIMEOUT = 20  # seconds
 
 XAUTH = {
     # occasionally included in emails sent by the API to your users for familiarity
-    'APP_NAME': '',
+    'APP_NAME': None,
     'TOKEN_KEY': force_str(SECRET_KEY),
     'TOKEN_EXPIRY': timedelta(days=60),
     # string. Email addresses to which account / auth-related replies are to be sent.

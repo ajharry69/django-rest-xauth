@@ -60,12 +60,12 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
             user_payload = claims.get(tk.payload_key, {})
             user_id = user_payload.get('id', None) if isinstance(user_payload, dict) else user_payload
             subject = claims.get('sub', 'access')
-            if settings.VERIFICATION_ENDPOINT in request_url and subject != 'account-verification':
-                raise jwe.JWException(f'tokens subject is restricted to {subject}')
-            elif settings.ACTIVATION_ENDPOINT in request_url and subject != 'account-activation':
-                raise jwe.JWException(f'tokens subject is restricted to {subject}')
+            if settings.VERIFICATION_ENDPOINT in request_url and subject != 'verification':
+                raise jwe.JWException(f'tokens is restricted to {subject}')
+            elif settings.ACTIVATION_ENDPOINT in request_url and subject != 'activation':
+                raise jwe.JWException(f'tokens is restricted to {subject}')
             elif settings.PASSWORD_RESET_ENDPOINT in request_url and subject != 'password-reset':
-                raise jwe.JWException(f'tokens subject is restricted to {subject}')
+                raise jwe.JWException(f'tokens is restricted to {subject}')
             else:
                 try:
                     return get_user_model().objects.get(pk=user_id) if user_id else None
@@ -155,8 +155,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         :return: tuple of username and password i.e. (username, password)
         """
         post, request_data = request.POST, request.data
-        _un_key = settings.XAUTH.get('POST_REQUEST_USERNAME_FIELD', 'username')
-        _pw_key = settings.XAUTH.get('POST_REQUEST_PASSWORD_FIELD', 'password')
+        _un_key, _pw_key = settings.POST_REQUEST_USERNAME_FIELD, settings.POST_REQUEST_PASSWORD_FIELD
 
         if isinstance(request_data, dict):
             # check key count 2

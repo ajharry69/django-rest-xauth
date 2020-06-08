@@ -1,11 +1,9 @@
-import importlib
-
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from xauth.models import SecurityQuestion
-from xauth.utils import valid_str
-from xauth.utils.settings import XAUTH, USER_LOOKUP_FIELD
+from xauth.utils import get_class
+from xauth.utils.settings import USER_LOOKUP_FIELD, USER_PROFILE_SERIALIZER
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -19,16 +17,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
 
 
-def get_serializer_class():
-    sr = XAUTH.get('USER_PROFILE_SERIALIZER', 'xauth.serializers.ProfileSerializer')
-    if valid_str(sr):
-        # probably a serializer class
-        module_name, class_name = sr.rsplit('.', 1)
-        return getattr(importlib.import_module(module_name), class_name)
-    return ProfileSerializer
-
-
-serializer_class = get_serializer_class()
+profile_serializer_class = get_class(USER_PROFILE_SERIALIZER, ProfileSerializer)
 
 
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
@@ -40,11 +29,11 @@ class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
         fields = 'normal', 'encrypted',
 
 
-class AuthSerializer(serializer_class):
+class AuthSerializer(profile_serializer_class):
     token = serializers.DictField(source='token.tokens', read_only=True, )
 
-    class Meta(serializer_class.Meta):
-        fields = tuple(serializer_class.Meta.fields) + ('token',)
+    class Meta(profile_serializer_class.Meta):
+        fields = tuple(profile_serializer_class.Meta.fields) + ('token',)
 
     def validate(self, attrs):
         return super().validate(attrs)

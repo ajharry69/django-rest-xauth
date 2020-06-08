@@ -20,13 +20,11 @@ class Mail:
         :param recipients: mail `recipient(s)` address(es)
         :param reply_to: email address(es) to send mail base_response to
         """
-        ACCOUNTS_EMAIL = XAUTH.get('ACCOUNTS_EMAIL', '')
-        REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES = XAUTH.get('REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES', '')
 
         def __init__(self, recipients=None, sender: str = ACCOUNTS_EMAIL,
                      reply_to: list = REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES):
             __is_not_iterable = not isinstance(recipients, tuple) or not isinstance(recipients, list)
-            self.recipients = list(recipients) if __is_not_iterable else recipients
+            self.recipients = [recipients] if __is_not_iterable else recipients
             self.sender = sender
             self.reply_to = reply_to
 
@@ -36,24 +34,23 @@ class Mail:
             # Non-HTML formatted password reset mail
             e = 'p'  # Element
             name = user.get_short_name()
-            app = XAUTH.get('APP_NAME', '')
 
             plain = f"""Hi {name},
-Please use "{password}"(without the quotes) as temporary password to reset your {app} account password.
+Please use "{password}"(without the quotes) as temporary password to reset your {APP_NAME} account password.
 
 NOTE: the password will expire shortly!
 
-You received this email because you recently requested for a password reset for your {app} account. If you did not,
+You received this email because you recently requested for a password reset for your {APP_NAME} account. If you did not,
 kindly discard or ignore this email."""
 
             # HTML formatted password reset mail
             formatted = f"""Hi {name},
-<{e}>Please use <strong>{password}</strong> as temporary password to reset your {app} account password.</{e}>
+<{e}>Please use <strong>{password}</strong> as temporary password to reset your {APP_NAME} account password.</{e}>
 
 <{e}><strong>NOTE:</strong> the password will expire shortly!</{e}>
 
-<{e}>You received this email because you recently requested for a password reset for your {app} account. If you did not,
-kindly discard or ignore this email.</{e}>"""
+<{e}>You received this email because you recently requested for a password reset for your {APP_NAME} account. 
+If you did not, kindly discard or ignore this email.</{e}>"""
 
             return plain, formatted
 
@@ -62,16 +59,15 @@ kindly discard or ignore this email.</{e}>"""
             # Non-HTML formatted password reset mail
             e = 'p'  # Element
             name = user.get_short_name()
-            app = XAUTH.get('APP_NAME', '')
-            app_name = f'{app} ' if not welcome else ' '
-            welcome_message = f"Hi {name}, welcome to {app}!" if welcome else ""
+            app_name = f'{APP_NAME} ' if not welcome else ' '
+            welcome_message = f"Hi {name}, welcome to {APP_NAME}!" if welcome else ""
 
             plain = f"""{welcome_message}
 Please use "{code}"(without the quotes) as verification code to verify your {app_name}account.
 
 NOTE: the verification code will expire shortly!
 
-You received this email because you recently created an account with {app}. If you did not, kindly 
+You received this email because you recently created an account with {APP_NAME}. If you did not, kindly 
 discard or ignore this email.
 """
 
@@ -81,7 +77,7 @@ discard or ignore this email.
 
 <{e}><strong>NOTE:</strong> the verification code will expire shortly!</{e}>
 
-<{e}>You received this email because you recently created an account with {app}. If you did not, kindly 
+<{e}>You received this email because you recently created an account with {APP_NAME}. If you did not, kindly 
 discard or ignore this email.</{e}>"""
 
             return plain, formatted

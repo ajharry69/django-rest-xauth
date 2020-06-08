@@ -13,18 +13,6 @@ Email verification and password resetting are based on hashed verification-code 
 account activation is based on a combination of user selected security question(provided through the admin portal by site 
 administrator(superuser)) and an answer.
 
-## Classes dependency structure
-
-`TokenKey` > `Token` > `User` > `AuthenticationBackend` > `Serializer` > `View` > `url_patterns`
-
-Most of the package's features are designed to be independently usable and customizable to suit most needs.
-
->**NOTE:** the  closer the dependency(use) get to the `url_patterns` the harder it becomes to extend and customize the 
->classes and features before it's predecessor. For example, modifying a `Serializer` without modifying it's dependant 
->`View` and still using unmodified `url_patterns` would most likely result in unexpected behaviour. But on the other 
->hand an extension to the `User` class without a dependency on it's dependant classes(`AuthenticationBackend` e.t.c) 
->will most likely work as expected.
-
 ## What makes django-rest-xauth different
 
 - Custom user class provides most common **optional** fields with reasonable complementary-helper methods e.g. 
@@ -34,9 +22,8 @@ Most of the package's features are designed to be independently usable and custo
 - Password-reset logging(IP-address should be provided as a `X-Forwarded-For` header)
 - Encrypted JWT tokens
 - Security question based account activation in-case account was deactivated
-- Mobile apps friendly:
-    - temporary password based user password reset
-    - verification code based user account activation.
+- Temporary password based user password reset
+- Verification code based user account activation.
 
 >**N/B:** _temporary passwords_ and _verification codes_ are both generated and returned from the `User` model hence 
 >opting to SMS based sending of the _verification codes_ and _temporary passwords_ should be as easy as extending the 
@@ -84,5 +71,9 @@ urlpatterns = [
 ## Contributing
 Please be sure to review [contributing guidelines](about/contributing.md) to learn how to help the project.
 
+## Postman Team
+[Join][postman-team-join-url] postman team.
+
+[postman-team-join-url]: https://app.getpostman.com/join-team?invite_code=b3ee38bf5dc02c6e7be11bd2e2e15573&ws=5e9ffb87-2dc7-4778-aece-4c8230419340
 [django-auth-user-model-setting-url]: https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 [django-customizing-user-model-url]: https://docs.djangoproject.com/en/dev/topics/auth/customizing/

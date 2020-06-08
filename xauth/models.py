@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 
 import timeago
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, AbstractUser
@@ -13,20 +13,6 @@ from .utils import enums, valid_str, reset_empty_nullable_to_null
 from .utils.mail import Mail
 from .utils.settings import *
 from .utils.token import Token
-
-PASSWORD_LENGTH = 128
-
-
-def get_settings_max_signin_attempts():
-    """
-    Gets and returns maximum sign-in attempts as defined in settings
-    :return: tuple(max-attempts, metered). 2nd is a bool indicating whether sign-in attempts are metered or not
-    """
-    try:
-        max_attempts = settings.XAUTH.get('MAXIMUM_SIGN_IN_ATTEMPTS', 0)
-    except AttributeError:
-        max_attempts = XAUTH.get('MAXIMUM_SIGN_IN_ATTEMPTS', 0)
-    return max_attempts, max_attempts > 0
 
 
 def default_security_question():
@@ -84,8 +70,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     Guidelines: https://docs.djangoproject.com/en/3.0/topics/auth/customizing/
     """
     __DEVICE_IP = None
-    __NEWBIE_GP = XAUTH.get('NEWBIE_VALIDITY_PERIOD', timedelta(days=1))
-    __ENFORCE_ACCOUNT_VERIFICATION = XAUTH.get('ENFORCE_ACCOUNT_VERIFICATION', True)
     __PROVIDERS = [(k, k) for k, _ in enums.AuthProvider.__members__.items()]
     __DEFAULT_PROVIDER = enums.AuthProvider.EMAIL.name
     username = models.CharField(db_index=True, max_length=150, unique=True)
@@ -99,7 +83,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     # if ENFORCE == True; then every new user account should be unverified(False) by default else otherwise
-    is_verified = models.BooleanField(default=not __ENFORCE_ACCOUNT_VERIFICATION)
+    is_verified = models.BooleanField(default=not ENFORCE_ACCOUNT_VERIFICATION)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -176,7 +160,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             return name.split()[0] if ' ' in name else name
         return name
 
-    def is_newbie(self, period: timedelta = __NEWBIE_GP):
+    def is_newbie(self, period: timedelta = NEWBIE_VALIDITY_PERIOD):
         """
         Flags user as a new if account(user object) has lasted for at most `period`
         since `self.created_at`
@@ -226,6 +210,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.__DEVICE_IP = value
 
     @property
+    def requires_verification(self) -> bool:
+        return not self.is_verified and ENFORCE_ACCOUNT_VERIFICATION
+
+    @property
     def token(self):
         """
         :return: verification token if user's account was not verified(self.is_verified=False) already
@@ -233,17 +221,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         if not self.is_active:
             return self.activation_token
-        expiry = XAUTH.get('TOKEN_EXPIRY', timedelta(days=60))
-        requires_verification = not self.is_verified and self.__ENFORCE_ACCOUNT_VERIFICATION
-        return self.verification_token if requires_verification else Token(self.token_payload(), expiry_period=expiry)
+        return self.verification_token if self.requires_verification else Token(self.token_payload(),
+                                                                                expiry_period=TOKEN_EXPIRY)
 
     @property
     def password_reset_token(self):
         """
         :return: dict of containing pair of encrypted and unencrypted(normal) token for password reset
         """
-        expiry = XAUTH.get('TEMPORARY_PASSWORD_EXPIRY', timedelta(minutes=30))
-        return Token(self.token_payload(), expiry_period=expiry, subject='password-reset', )
+        return Token(self.token_payload(), expiry_period=TEMPORARY_PASSWORD_EXPIRY, subject='password-reset', )
 
     @property
     def verification_token(self):
@@ -251,8 +237,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         :return: dict of containing pair of encrypted and unencrypted(normal) token for user account
         verification
         """
-        expiry = XAUTH.get('VERIFICATION_CODE_EXPIRY', timedelta(hours=1))
-        return Token(self.token_payload(), expiry_period=expiry, subject='account-verification', )
+        return Token(self.token_payload(), expiry_period=VERIFICATION_CODE_EXPIRY, subject='verification', )
 
     @property
     def activation_token(self):
@@ -260,17 +245,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         :return: dict of containing pair of encrypted and unencrypted(normal) token for user account
         activation
         """
-        expiry = XAUTH.get('ACCOUNT_ACTIVATION_TOKEN_EXPIRY', timedelta(days=1))
-        return Token(self.token_payload(), expiry_period=expiry, subject='account-activation', )
+        return Token(self.token_payload(), expiry_period=ACCOUNT_ACTIVATION_TOKEN_EXPIRY, subject='activation')
 
     def request_password_reset(self, send_mail: bool = True):
         """
         Sends account password reset email with temporary password
         :return: tuple of (`Token`, temporary-password)
         """
-        length = XAUTH.get('TEMPORARY_PASSWORD_LENGTH', 8)
         # random temporary password of `length`
-        password = self.get_random_code(length=length)
+        password = self.get_random_code(length=TEMPORARY_PASSWORD_LENGTH)
 
         if send_mail:
             # send user email
@@ -297,9 +280,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         if self.is_verified:
             return self.token, None
-        length = XAUTH.get('VERIFICATION_CODE_LENGTH', 6)
         # random verification code of `length`
-        code = self.get_random_code(alpha_numeric=False, length=length)
+        code = self.get_random_code(alpha_numeric=False, length=VERIFICATION_CODE_LENGTH)
 
         # get or create a metadata object for the `user`
         metadata, created = Metadata.objects.get_or_create(user_id=self.id)
@@ -414,9 +396,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return True
 
     def send_email(self, subject, body: Mail.Body):
-        sender_address = XAUTH.get('ACCOUNTS_EMAIL')
-        reply_addresses = XAUTH.get('REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES')
-        Mail.send(subject, body, address=Mail.Address(self.email, sender=sender_address, reply_to=reply_addresses))
+        address = Mail.Address(self.email, sender=ACCOUNTS_EMAIL, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES, )
+        Mail.send(subject, body, address=address)
 
     def update_or_create_password_reset_log(self, force_create=False, type=enums.PasswordResetType.RESET):
         """
@@ -502,7 +483,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         attempts are set to -1.
         :return: number of sign-in attempts left until account is deactivated
         """
-        _, metered = get_settings_max_signin_attempts()
+        _, metered = max_sign_in_attempts()
         attempt, created = FailedSignInAttempt.objects.get_or_create(user=self)
 
         count_attr = 'attempt_count'
@@ -646,13 +627,13 @@ class Metadata(models.Model):
 
     @property
     def is_verification_code_expired(self):
-        expiry = XAUTH.get('VERIFICATION_CODE_EXPIRY', timedelta(hours=1))
-        return (self.vc_gen_time + expiry) <= timezone.now()
+        time = self.vc_gen_time
+        return (time + VERIFICATION_CODE_EXPIRY) <= timezone.now() if time else False
 
     @property
     def is_temporary_password_expired(self):
-        expiry = XAUTH.get('TEMPORARY_PASSWORD_EXPIRY', timedelta(minutes=30))
-        return (self.tp_gen_time + expiry) <= timezone.now()
+        time = self.tp_gen_time
+        return (time + TEMPORARY_PASSWORD_EXPIRY) <= timezone.now() if time else False
 
     def check_temporary_password(self, raw_password) -> bool:
         """:returns True if `raw_password` matches `self.temporary_password`"""
@@ -756,7 +737,7 @@ class FailedSignInAttempt(models.Model):
         :return: remaining sign-in attempts. -1 could either mean attempts are not metered or record
         was not found
         """
-        max_attempts, metered = get_settings_max_signin_attempts()
+        max_attempts, metered = max_sign_in_attempts()
         if metered:
             rem = int(max_attempts - self.attempt_count)
             if rem < 1:

@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from .models import Metadata
 from .permissions import *
 from .serializers import *
-from .utils import get_204_wrapped_response, get_wrapped_response, valid_str
+from .utils import get_204_wrapped_response, get_wrapped_response, valid_str, is_http_response_success
 
 
 class SecurityQuestionView(viewsets.ModelViewSet):
@@ -21,7 +21,7 @@ class SecurityQuestionView(viewsets.ModelViewSet):
 class ProfileView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = USER_LOOKUP_FIELD
     queryset = get_user_model().objects.all()
-    serializer_class = get_serializer_class()
+    serializer_class = profile_serializer_class
     permission_classes = [IsOwnerOrSuperuserOrReadOnly, ]
 
     def get(self, request, *args, **kwargs):
@@ -43,7 +43,21 @@ class SignUpView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny, ]
 
     def post(self, request, *args, **kwargs):
-        return get_wrapped_response(super().post(request, *args, **kwargs))
+        request_data = request.data
+        username = request_data.get('username', request_data.get('email', request_data.get('mobile_number', None)))
+
+        response = super().post(request, *args, **kwargs)
+        if is_http_response_success(status_code=response.status_code):
+            user = get_user_model().objects.filter(
+                Q(username=username) | Q(email=username) | Q(mobile_number=username),
+            ).first()
+            self.on_success(user)
+        return get_wrapped_response(response)
+
+    @staticmethod
+    def on_success(user):
+        if user and user.requires_verification:
+            token, code = user.request_verification(send_mail=True)
 
 
 class SignInView(views.APIView):
@@ -203,7 +217,8 @@ class ActivationRequestView(views.APIView):
     serializer_class = AuthTokenOnlySerializer
 
     def post(self, request, format=None):
-        username = request.data.get('username', None)
+        request_data = request.data
+        username = request_data.get('username', request_data.get('email', None))
         user = request.user
         is_valid_user = user and not isinstance(user, AnonymousUser)
         user = user if is_valid_user else get_user_model().objects.filter(

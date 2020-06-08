@@ -6,16 +6,27 @@ import sys
 import setuptools
 
 
+from xauth import get_next_version
+
+
 def get_version(package):
     """
     Return package version as listed in `__version__` in `init.py`.
     """
     with open(os.path.join(package, "__init__.py"), "rb") as init_py:
         src = init_py.read().decode("utf-8")
-        return re.search("__version__ = ['\"]([^'\"]+)['\"]", src).group(1)
+        return re.search("__version__ = ['\"]([^'\"]+)['\"]", src).group(1), src
 
 
-version = get_version("xauth")
+def update_version(package):
+    old_version, src = get_version(package)
+    new_version = get_next_version(old_version=old_version)
+    new_file_content = re.sub("__version__ = ['\"]([^'\"]+)['\"]", f'__version__ = "{new_version}"', src)
+    with open(os.path.join(package, "__init__.py"), "wb") as init_py:
+        init_py.write(bytes(new_file_content, encoding="utf-8"))
+
+
+version, _ = get_version("xauth")
 
 with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
     long_description = readme.read()
@@ -38,6 +49,7 @@ if sys.argv[-1] == "publish":
     print("You probably want to also tag the version now:")
     print(" git tag -a {0} -m 'version {0}'".format(version))
     print(" git push --tags")
+    update_version('xauth')
     shutil.rmtree('dist')
     shutil.rmtree('build')
     shutil.rmtree('django_rest_xauth.egg-info')

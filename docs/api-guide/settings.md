@@ -48,7 +48,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 ## APP_NAME
 **Type**: `str`
 
-**Default**: ''
+**Default**: project name [python-capitalized][python-capitalize]
 
 **Usage**: occasionally included in emails sent by the API to your users as a source identity
 
@@ -231,3 +231,4 @@ correctness before account is considered activated.
 [user-model-fields-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/classes/user/properties/
 [user-lookup-field-setting-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/settings/#USER_LOOKUP_FIELD
 [profile-endpoint-setting-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/settings/#PROFILE_ENDPOINT
+[python-capitalize]: https://docs.python.org/3/library/stdtypes.html#str.capitalize
