@@ -1,12 +1,22 @@
 import threading
 
-from django.core.mail import EmailMultiAlternatives
+from templated_email import send_templated_mail
+
+from xauth.utils.settings import *
 
 
-def send_mail_async(subject: str, body_p: str, body_f: str, recipients: list, sender: str, reply_to: list, ):
+def send_mail_async(recipients: list, sender: str, reply_to: list, template_name: str, context: dict):
     """
     Asynchronously send mail with a body compose of a plain and an alternative HTML formatted-body
     """
-    mc = EmailMultiAlternatives(subject=subject, body=body_p, from_email=sender, to=recipients, reply_to=reply_to)
-    mc.attach_alternative(body_f, "text/html")
-    threading.Thread(target=mc.send, args=(False,)).start()
+    context['app_name'] = APP_NAME
+    threading.Thread(target=send_templated_mail, kwargs={
+        'template_name': template_name,
+        'from_email': sender,
+        'recipient_list': recipients,
+        'reply_to': reply_to,
+        'context': context,
+        'template_suffix': EMAIL_TEMPLATE_SUFFIX,
+        'template_dir': EMAIL_TEMPLATES_DIRECTORY if EMAIL_TEMPLATES_DIRECTORY.endswith(
+            '/') else f'{EMAIL_TEMPLATES_DIRECTORY}/',
+    }).start()

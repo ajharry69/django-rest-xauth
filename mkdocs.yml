@@ -4,8 +4,9 @@ site_author: Orinda Harrison
 nav:
   - Home: index.md
   - API guide:
-      - Settings: api-guide/settings.md
+      - Customizing emails: api-guide/mail.md
       - Endpoints: api-guide/endpoints.md
+      - Settings: api-guide/settings.md
       - Classes:
           - Token:
               - Overview: api-guide/classes/token/index.md

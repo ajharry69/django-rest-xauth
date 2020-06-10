@@ -18,6 +18,8 @@ django-extensions = "*"
 mkdocs = "*"
 markdown = "*"
 tox = "*"
+django-templated-email = "*"
+html2text = "*"
 
 [requires]
 python_version = "3.7"

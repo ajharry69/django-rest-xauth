@@ -257,10 +257,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         if send_mail:
             # send user email
-            subject = 'Password Reset'
-            plain, formatted = Mail.Templates.password_reset(self, password)
-            body = Mail.Body(plain=plain, formatted=formatted)
-            self.send_email(subject, body)
+            self.send_email('password-reset-request', {'password': password, }, )
 
         # store the verification request data to database
         metadata, _ = Metadata.objects.get_or_create(user_id=self.id)
@@ -290,10 +287,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             # send user email
             # show welcome if the user is new and and is just created a metadata object in db
             show_welcome = self.is_newbie() and created
-            subject = 'Account Verification'
-            plain, formatted = Mail.Templates.account_verification(self, code, show_welcome)
-            body = Mail.Body(plain=plain, formatted=formatted)
-            self.send_email(subject, body)
+            self.send_email('verification-request', {'code': code, })
 
         # store the verification request data to database
         metadata.verification_code = code
@@ -395,9 +389,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         metadata.save(update_fields=['security_question', 'security_question_answer', ])
         return True
 
-    def send_email(self, subject, body: Mail.Body):
-        address = Mail.Address(self.email, sender=ACCOUNTS_EMAIL, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES, )
-        Mail.send(subject, body, address=address)
+    def send_email(self, template_name: str, context=None, ):
+        context = context if context else {}
+        context['user'] = self
+        address = Mail.Address(self.email, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES, )
+        Mail.send(address=address, template_name=template_name, context=context)
 
     def update_or_create_password_reset_log(self, force_create=False, type=enums.PasswordResetType.RESET):
         """

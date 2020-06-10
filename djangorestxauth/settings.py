@@ -139,41 +139,6 @@ EMAIL_PORT = 587
 
 EMAIL_TIMEOUT = 20  # seconds
 
-XAUTH = {
-    # occasionally included in emails sent by the API to your users for familiarity
-    'APP_NAME': None,
-    'TOKEN_KEY': force_str(SECRET_KEY),
-    'TOKEN_EXPIRY': timedelta(days=60),
-    # string. Email addresses to which account / auth-related replies are to be sent.
-    # Also permitted: "Name <email-address>"
-    'REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES': [
-        settings.EMAIL_HOST_USER
-    ],
-    # string. Email used to send verification code.
-    # Also permitted: "Name <email-address>"
-    'ACCOUNTS_EMAIL': settings.EMAIL_HOST_USER,
-    'VERIFICATION_CODE_LENGTH': 6,
-    'TEMPORARY_PASSWORD_LENGTH': 8,
-    'VERIFICATION_CODE_EXPIRY': timedelta(hours=1),
-    'TEMPORARY_PASSWORD_EXPIRY': timedelta(minutes=30),
-    'ACCOUNT_ACTIVATION_TOKEN_EXPIRY': timedelta(days=1),
-    # period within which a user is considered new since account creation date
-    'NEWBIE_VALIDITY_PERIOD': timedelta(days=1),
-    'WRAP_DRF_RESPONSE': False,
-    'POST_REQUEST_USERNAME_FIELD': 'username',
-    'POST_REQUEST_PASSWORD_FIELD': 'password',
-    'ENFORCE_ACCOUNT_VERIFICATION': True,
-    # attempts upon which account is to be deactivated after failed sign-in attempts is reached.
-    # 0 or less means no limit
-    'MAXIMUM_SIGN_IN_ATTEMPTS': 0,
-    'USER_PROFILE_SERIALIZER': 'xauth.serializers.ProfileSerializer',
-    'USER_LOOKUP_FIELD': 'pk',
-    'PROFILE_ENDPOINT': 'profile/(?P<pk>[0-9]+)/',
-    'VERIFICATION_ENDPOINT': 'verification/confirm/',
-    'PASSWORD_RESET_ENDPOINT': 'password/reset/confirm/',
-    'ACTIVATION_ENDPOINT': 'activation/confirm/',
-}
-
 AUTH_USER_MODEL = 'xauth.User'
 
 # Internationalization

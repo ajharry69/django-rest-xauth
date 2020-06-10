@@ -1,7 +1,8 @@
 import re
 
 from django.utils.datetime_safe import datetime
-from rest_framework import views
+from rest_framework import views, status
+from rest_framework.response import Response
 
 from xauth.utils import valid_str
 from xauth.utils.response import APIResponse
@@ -45,10 +46,12 @@ def text_with_dated_timestamps(txt: str):
 
 
 def exception_handler(exception, context):
-    response = views.exception_handler(exception, context)
-
-    erd = response.data
     __field_detail = 'detail'
+    response = views.exception_handler(exception, context)
+    response = Response(data={
+        __field_detail: '#'.join(exception.args)
+    }, status=status.HTTP_400_BAD_REQUEST) if response is None else response
+    erd = response.data
     if isinstance(erd, dict) and __field_detail in erd:
         ed = str(erd[__field_detail])
         api_response = wrap_error_response(ed, response)

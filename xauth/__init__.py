@@ -1,14 +1,25 @@
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
-def get_next_version(old_version: str = __version__):
-    f, s, l = tuple([int(n) for n in old_version.split('.', 3)])
-    l = l + 1 if l <= 9 else l
-    if l > 9:
-        l = 0
-        s = s + 1 if s <= 9 else s
-        if s > 9:
-            s = 0
-            f = f + 1
+def get_next_version(old_version: str = __version__, max_minor: int = 9, max_patch: int = 9):
+    """
+    Calculates and returns the next version of a software that uses **major**.**minor**.**patch**
+     from `old_version`.
+     For example, given `max_minor` & `max_patch` = 9 and `old_version` is values listed on the
+     left(below) then the values provided on the right side(after the = sign) of every value
+     would be returned as the next version
+     "1.0.0" = "1.0.1"
+     "1.0.9" = "1.1.0"
+     "1.9.9" = "2.0.0"
+     "10.9.9" = "11.0.0"
+    """
+    major, minor, patch = tuple([int(n) for n in old_version.split('.', 3)])
+    patch = patch + 1 if patch <= max_patch else patch
+    if patch > max_patch:
+        patch = 0
+        minor = minor + 1 if minor <= max_minor else minor
+        if minor > max_minor:
+            minor = 0
+            major = major + 1
 
-    return f'{f}.{s}.{l}'
+    return f'{major}.{minor}.{patch}'

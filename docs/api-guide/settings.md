@@ -225,6 +225,20 @@ correctness before user's password is changed to a new one(provided through a **
 **Usage**: used to create a url through which user's security question's answer will be verified/validated for 
 correctness before account is considered activated.
 
+## EMAIL_TEMPLATES_DIRECTORY
+**Type:** `str`
+
+**Default:** `xauth/mails/`
+
+**Usage:** path/directory to your email templates after `app/templates/` directory
+
+## EMAIL_TEMPLATE_SUFFIX
+**Type:** `str`
+
+**Default:** `html`
+
+**Usage:** the file extension of your email templates
+
 [basic-auth-scheme]: https://en.wikipedia.org/wiki/Basic_access_authentication
 [drf-serializer-url]: https://www.django-rest-framework.org/api-guide/serializers/
 [drf-serializer-tutorial-url]: https://www.django-rest-framework.org/tutorial/1-serialization/

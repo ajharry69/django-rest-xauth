@@ -90,6 +90,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'djangorestframework',
+        'django-templated-email',
         'jwcrypto',
         'timeago',
     ],
