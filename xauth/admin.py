@@ -1,10 +1,11 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import gettext_lazy as _
 
-from .models import User, SecurityQuestion, Metadata
+from .models import SecurityQuestion, Metadata
 
 
 class MetadataInline(admin.StackedInline):
@@ -22,7 +23,7 @@ class UserCreationForm(forms.ModelForm):
     password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput)
 
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('username', 'email', 'surname', 'first_name', 'last_name', 'date_of_birth', 'mobile_number',)
 
     def clean_password2(self):
@@ -55,7 +56,7 @@ class UserUpdateForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField
 
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('username', 'email', 'surname', 'first_name', 'last_name', 'date_of_birth', 'mobile_number',
                   'provider', 'is_superuser', 'is_staff', 'is_verified', 'is_active', 'password',)
 
@@ -110,4 +111,4 @@ class SecurityQuestionAdmin(admin.ModelAdmin):
 
 admin.site.register(SecurityQuestion, SecurityQuestionAdmin)
 
-admin.site.register(User, UserAdmin)
+admin.site.register(get_user_model(), UserAdmin)

@@ -16,6 +16,7 @@ from .utils.token import Token
 
 
 def default_security_question():
+    response = SecurityQuestion.objects.get_or_create(question='Default', usable=False, )
     return SecurityQuestion.objects.order_by('id').first()
 
 
