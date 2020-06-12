@@ -71,8 +71,8 @@ class UserAdmin(BaseUserAdmin):
     form = UserUpdateForm
     add_form = UserCreationForm
 
-    list_display = ('surname', 'first_name', 'last_name', 'date_of_birth', 'mobile_number', 'username', 'email',
-                    'provider', 'created_at', 'is_verified', 'is_staff', 'is_newbie',)
+    list_display = ('username', 'email', 'surname', 'first_name', 'last_name', 'date_of_birth', 'mobile_number',
+                    'provider', 'is_verified', 'is_staff', 'is_newbie', 'created_at',)
     list_filter = ('provider', 'is_verified', 'is_staff',)
     # readonly_fields = ('provider', 'is_verified', 'is_staff', 'created_at',)
     search_fields = ('surname', 'first_name', 'last_name', 'email', 'mobile_number',)
@@ -109,6 +109,5 @@ class SecurityQuestionAdmin(admin.ModelAdmin):
     list_display = ('question', 'usable', 'added_on')
 
 
-admin.site.register(SecurityQuestion, SecurityQuestionAdmin)
-
 admin.site.register(get_user_model(), UserAdmin)
+admin.site.register(SecurityQuestion, SecurityQuestionAdmin)

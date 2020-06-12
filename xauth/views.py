@@ -1,6 +1,6 @@
 import re
 
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from rest_framework import permissions, generics, views, status, viewsets
@@ -67,6 +67,7 @@ class SignInView(views.APIView):
     def post(self, request, format=None):
         # authentication logic is by default handled by the auth-backend
         user = request.user
+        login(request, user)
         user.update_or_create_access_log(force_create=True)
         serializer = self.serializer_class(user, context={'request': request}, )
         return get_wrapped_response(Response(serializer.data, status=status.HTTP_200_OK))

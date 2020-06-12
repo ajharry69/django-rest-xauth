@@ -12,10 +12,9 @@ class SignInViewTestCase(APITestCase):
         })
         response_data = response.data
         self.assertEqual(response.status_code, expect_status_code)
-        if expect_null_payload:
-            self.assertIsNotNone(get_response_data_message(response))
-        else:
-            self.assertIsNotNone(get_response_data_payload(response))
+        self.assertIsNotNone(
+            get_response_data_message(response) if expect_null_payload else get_response_data_payload(response))
+        return response
 
     def assert_basic_auth(self, _username, _password, expect_status_code, expect_null_payload: bool = True):
         from requests.auth import _basic_auth_str

@@ -48,7 +48,8 @@ INSTALLED_APPS = [
 ```
 - Add/modify your `AUTH_USER_MODEL` setting to
 ```python
-AUTH_USER_MODEL = 'xauth.User' # Can also be a modified direct subclass of `xauth.models.User`
+# Can also be a (modified) direct subclass of `xauth.models.AbstractUser`
+AUTH_USER_MODEL = 'xauth.User'
 ```
 - Add/modify your `REST_FRAMEWORK` setting to
 ```python

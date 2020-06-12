@@ -3,7 +3,7 @@ import re
 from datetime import datetime, date
 
 import timeago
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, AbstractUser
+from django.contrib.auth import models as dj_auth_models
 from django.db import models
 from django.utils import timezone
 from django.utils.datetime_safe import date as dj_date, datetime as dj_datetime
@@ -20,7 +20,7 @@ def default_security_question():
     return SecurityQuestion.objects.order_by('id').first()
 
 
-class UserManager(BaseUserManager):
+class UserManager(dj_auth_models.BaseUserManager):
     def create_user(
             self, email,
             username=None,
@@ -66,7 +66,7 @@ class UserManager(BaseUserManager):
         )
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMixin):
     """
     Guidelines: https://docs.djangoproject.com/en/3.0/topics/auth/customizing/
     """
@@ -112,6 +112,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         ordering = ('created_at', 'updated_at', 'username',)
+        abstract = True
 
     def __str__(self):
         return self.get_full_name()
@@ -132,7 +133,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.set_unusable_password()
         self.is_verified = self.__get_ascertained_verification_status()
         reset_empty_nullable_to_null(self, self.NULLABLE_FIELDS)
-        super(User, self).save(*args, **kwargs)
+        super(AbstractUser, self).save(*args, **kwargs)
 
     def get_full_name(self):
         """
@@ -512,8 +513,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         attempt.refresh_from_db()
         return self.__remaining_attempts(attempt) if failed else attempt.attempt_count - 1
 
-    @staticmethod
-    def get_random_code(alpha_numeric: bool = True, length=None):
+    def get_random_code(self, alpha_numeric: bool = True, length=None):
         """
         Generates and returns random code of `length`
         :param alpha_numeric: if `True`, include letters and numbers in the generated code
@@ -526,9 +526,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         length = random.randint(8, 10) if length is None or not isinstance(length, int) else length
         rand = None
         if alpha_numeric:
-            rand = User.objects.make_random_password(length=length)
+            rand = self.__class__.objects.make_random_password(length=length)
         else:
-            rand = User.objects.make_random_password(length=length, allowed_chars='23456789')
+            rand = self.__class__.objects.make_random_password(length=length, allowed_chars='23456789')
         return rand
 
     def token_payload(self) -> dict:
@@ -581,6 +581,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     @staticmethod
     def __remaining_attempts(attempt_log):
         return -1 if attempt_log is None else attempt_log.remaining
+
+
+class User(AbstractUser):
+    class Meta(AbstractUser.Meta):
+        swappable = 'AUTH_USER_MODEL'
 
 
 class SecurityQuestion(models.Model):

@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.urls import reverse
-from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.test import APITestCase, APIRequestFactory
+from rest_framework.test import APITestCase
 
 from xauth import authentication
 
@@ -33,22 +31,6 @@ class BasicTokenAuthenticationTestCase(APITestCase):
     def test_get_user_with_None_username_and_None_password(self):
         user = self.backend.get_user_with_username_and_password(username=None, password=None)
         self.assertIsNone(user)
-
-    def test_get_post_request_username_and_password(self):
-        _username = 'user'
-        _password = 'password'
-        factory = APIRequestFactory()
-        from xauth import views
-        view = views.SignInView.as_view()
-        request = factory.post(reverse('xauth:signin'), data={
-            'username': _username,
-            'password': _password,
-        })
-        response = view(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # username, password = self.backend.get_post_request_username_and_password(request)
-        # self.assertEqual(username, _username)
-        # self.assertEqual(password, _password)
 
     def test_get_basic_auth_username_and_password(self):
         from requests.auth import _basic_auth_str
