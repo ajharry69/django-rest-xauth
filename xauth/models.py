@@ -203,6 +203,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return _age
 
     @property
+    def name(self):
+        return self.get_full_name()
+
+    @property
     def device_ip(self):
         return self.__DEVICE_IP
 
