@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from xauth.utils import get_class
-from xauth.utils.settings import USER_LOOKUP_FIELD, USER_PROFILE_SERIALIZER
+from xauth.utils.settings import USER_LOOKUP_FIELD, PROFILE_SERIALIZER
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
 
 
-profile_serializer_class = get_class(USER_PROFILE_SERIALIZER, ProfileSerializer)
+profile_serializer_class = get_class(PROFILE_SERIALIZER, ProfileSerializer)
 
 
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
