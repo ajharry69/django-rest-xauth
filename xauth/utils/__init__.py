@@ -1,10 +1,7 @@
 import importlib
 import re
 
-from rest_framework import status, response as drf_response
-
-from xauth.utils.settings import XAUTH, WRAP_DRF_RESPONSE
-from .response import APIResponse
+from xauth.utils.settings import XAUTH
 
 
 def valid_str(string, length: int = 1) -> bool:
@@ -31,45 +28,6 @@ def reset_empty_nullable_to_null(obj, fields):
         val = getattr(obj, f)
         if isinstance(val, str) and not valid_str(val):
             setattr(obj, f, None)
-
-
-def get_204_wrapped_response(r: drf_response.Response):
-    if not r.data or r.status_code == status.HTTP_204_NO_CONTENT:
-        return drf_response.Response(status=status.HTTP_204_NO_CONTENT)
-    return get_wrapped_response(r)
-
-
-def get_wrapped_response(r: drf_response.Response):
-    if WRAP_DRF_RESPONSE:
-        metadata, debug_message, message, payload, response_data, response_status_code = (
-            None, None, None, None, r.data, r.status_code,)
-        if isinstance(response_data, str):
-            message = response_data
-            if is_http_response_success(response_status_code):
-                # the response could probably be expected as payload
-                payload = response_data
-        elif isinstance(response_data, dict):
-            _msg = response_data.get('message', response_data.get('success', response_data.get('error', None)))
-            metadata = response_data.pop('metadata', response_data.pop('meta', None))
-            if valid_str(_msg):
-                message = _msg
-            else:
-                # payload should not be None
-                payload = response_data.pop('payload', response_data)
-        else:
-            payload = response_data
-
-        if valid_str(message):
-            try:
-                message, debug_message = tuple(re.sub(r'^#|#$', '', message).split('#', 1))
-            except ValueError:
-                pass
-
-        _response = APIResponse(payload=payload, message=message, debug_message=debug_message, metadata=metadata,
-                                status_code=response_status_code)
-        return drf_response.Response(_response.response(), status=_response.status_code)
-    else:
-        return r
 
 
 def is_http_response_success(status_code: int) -> bool:

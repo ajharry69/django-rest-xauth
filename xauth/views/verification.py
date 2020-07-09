@@ -5,7 +5,6 @@ from rest_framework.response import Response
 
 from xauth import permissions
 from xauth.serializers import AuthTokenOnlySerializer
-from xauth.utils import get_wrapped_response
 
 
 class VerificationRequestView(views.APIView):
@@ -16,8 +15,10 @@ class VerificationRequestView(views.APIView):
         user = request.user
         # new verification code resend or request is been made
         token, code = user.request_verification(send_mail=True)
-        response = Response(self.serializer_class(user, ).data, status=status.HTTP_200_OK)
-        return get_wrapped_response(response)
+        return Response(
+            data=self.serializer_class(user, ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class VerificationConfirmView(VerificationRequestView):
@@ -48,5 +49,7 @@ class VerificationConfirmView(VerificationRequestView):
                 data, status_code = self.serializer_class(user, ).data, None
             else:
                 data, status_code = {'error': message}, status.HTTP_400_BAD_REQUEST
-        response = Response(data, status=status_code if status_code else status.HTTP_200_OK)
-        return get_wrapped_response(response)
+        return Response(
+            data=data,
+            status=status_code or status.HTTP_200_OK,
+        )

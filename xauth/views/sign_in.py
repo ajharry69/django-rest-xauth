@@ -4,7 +4,6 @@ from rest_framework.response import Response
 
 from xauth import permissions
 from xauth.serializers import AuthSerializer
-from xauth.utils import get_wrapped_response
 
 
 class SignInView(views.APIView):
@@ -17,4 +16,4 @@ class SignInView(views.APIView):
         login(request, user)
         user.update_or_create_access_log(force_create=True)
         serializer = self.serializer_class(user, context={'request': request}, )
-        return get_wrapped_response(Response(serializer.data, status=status.HTTP_200_OK))
+        return Response(serializer.data, status=status.HTTP_200_OK)

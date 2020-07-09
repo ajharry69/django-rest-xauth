@@ -7,7 +7,6 @@ from rest_framework import views, status
 from rest_framework.response import Response
 
 from xauth.serializers import AuthTokenOnlySerializer
-from xauth.utils import get_wrapped_response
 
 
 class PasswordResetRequestView(views.APIView):
@@ -26,7 +25,7 @@ class PasswordResetRequestView(views.APIView):
         except get_user_model().DoesNotExist:
             # user not found
             data, status_code = {'error': 'email address is not registered'}, status.HTTP_404_NOT_FOUND
-        return get_wrapped_response(Response(data, status=status_code))
+        return Response(data, status=status_code)
 
 
 class PasswordResetConfirmView(PasswordResetRequestView):
@@ -61,5 +60,4 @@ class PasswordResetConfirmView(PasswordResetRequestView):
                 data, status_code = self.serializer_class(user, ).data, None
             else:
                 data, status_code = {'error': message}, status.HTTP_400_BAD_REQUEST
-        response = Response(data, status=status_code if status_code else status.HTTP_200_OK)
-        return get_wrapped_response(response)
+        return Response(data, status=status_code or status.HTTP_200_OK)

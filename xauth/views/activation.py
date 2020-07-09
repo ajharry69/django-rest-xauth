@@ -9,7 +9,6 @@ from rest_framework.response import Response
 
 from xauth.models import Metadata
 from xauth.serializers import AuthTokenOnlySerializer
-from xauth.utils import get_wrapped_response
 
 
 class ActivationRequestView(views.APIView):
@@ -22,29 +21,30 @@ class ActivationRequestView(views.APIView):
 
     def post(self, request, format=None):
         request_data = request.data
-        username = request_data.get('username', request_data.get('email', None))
+        username = request_data.get('username') or request_data.get('email')
         user = request.user
         is_valid_user = user and not isinstance(user, AnonymousUser)
         user = user if is_valid_user else get_user_model().objects.filter(
             Q(username=username) | Q(email=username),
         ).first()
         if user:
-            # account activation methods. Only include `security_question` if user has a valid question attached to
-            # his/her account
-            metadata = ['creation_date', ] + (['security_question'] if self.has_valid_security_question(user) else [])
+            # account activation methods. Only include `security_question` if user
+            # has a valid question attached to his/her account
+            metadata = ['creation_date', ] + (
+                ['security_question'] if self.has_valid_security_question(user) else [])
             data = self.serializer_class(user, context={'request': request}, ).data
             data = {'payload': data, 'metadata': metadata, }
             data, status_code = data, status.HTTP_200_OK
         else:
             data = {'error': 'username or email address is not registered', }
             data, status_code = data, status.HTTP_404_NOT_FOUND
-        return get_wrapped_response(Response(data, status=status_code))
+        return Response(data, status=status_code)
 
     @staticmethod
     def has_valid_security_question(user) -> bool:
         """Returns True if security question attached to user's account is usable(valid) or False"""
         metadata = Metadata.objects.filter(user=user, ).first()
-        return True if (metadata and metadata.security_question.usable) else False
+        return metadata and metadata.security_question.usable
 
 
 class ActivationConfirmView(ActivationRequestView):
@@ -69,5 +69,4 @@ class ActivationConfirmView(ActivationRequestView):
                 data, status_code = self.serializer_class(user, ).data, None
             else:
                 data, status_code = {'error': message}, status.HTTP_400_BAD_REQUEST
-        response = Response(data, status=status_code if status_code else status.HTTP_200_OK)
-        return get_wrapped_response(response)
+        return Response(data, status=status_code or status.HTTP_200_OK)

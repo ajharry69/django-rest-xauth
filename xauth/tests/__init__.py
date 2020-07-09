@@ -8,7 +8,7 @@ from xauth.utils.settings import *
 
 def get_response_data_payload(response):
     data = response.data
-    return data.get('payload') if WRAP_DRF_RESPONSE else data
+    return data
 
 
 def get_response_data_payload_with_key(response, data_key: str):
@@ -17,7 +17,7 @@ def get_response_data_payload_with_key(response, data_key: str):
 
 def get_response_data_message(response):
     data = response.data
-    return data.get('message', data.get('success', data.get('error', None)))
+    return data.get('message') or data.get('success') or data.get('error')
 
 
 def get_response_data_debug_message(response):

@@ -2,7 +2,7 @@ from django.urls import include, re_path
 from rest_framework import routers
 
 from xauth.utils.settings import *
-from xauth.views import sign_in, sign_out, sign_up, verification, activation, password, ProfileView
+from xauth.views import sign_in, sign_out, signup, verification, activation, password, profile
 from xauth.views.security_question import admin, AddSecurityQuestionView
 
 __router = routers.DefaultRouter()
@@ -23,12 +23,12 @@ urlpatterns = [
     ),
     re_path(
         r'^signup/',
-        view=sign_up.SignUpView.as_view(),
+        view=signup.SignUpView.as_view(),
         name='signup',
     ),
     re_path(
         r'^%s' % PROFILE_ENDPOINT,
-        view=ProfileView.as_view(),
+        view=profile.ProfileView.as_view(),
         name='profile',
     ),
     re_path(

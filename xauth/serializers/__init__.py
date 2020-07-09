@@ -1,22 +1,15 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from xauth.utils import get_class
-from xauth.utils.settings import USER_LOOKUP_FIELD, PROFILE_SERIALIZER
+from xauth.serializers.profile import request_serializer_class
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile', lookup_field=USER_LOOKUP_FIELD, )
+class RequestSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        return validated_data
 
-    # groups = serializers.HyperlinkedRelatedField(view_name='group-detail', many=True, read_only=True)
-
-    class Meta:
-        model = get_user_model()
-        fields = tuple(get_user_model().PUBLIC_READ_WRITE_FIELDS) + ('url',)
-        read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
-
-
-profile_serializer_class = get_class(PROFILE_SERIALIZER, ProfileSerializer)
+    def create(self, validated_data):
+        return validated_data
 
 
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
@@ -28,11 +21,11 @@ class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
         fields = 'normal', 'encrypted',
 
 
-class AuthSerializer(profile_serializer_class):
+class AuthSerializer(request_serializer_class):
     token = serializers.DictField(source='token.tokens', read_only=True, )
 
-    class Meta(profile_serializer_class.Meta):
-        fields = tuple(profile_serializer_class.Meta.fields) + ('token',)
+    class Meta(request_serializer_class.Meta):
+        fields = tuple(request_serializer_class.Meta.fields) + ('token',)
 
     def validate(self, attrs):
         return super().validate(attrs)
