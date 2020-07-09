@@ -13,37 +13,12 @@ XAUTH = {
 
 **NOTE:** All `XAUTH` setting names must be written in **capital letters(uppercase)** for a setting to take effect.
 
-## USER_PROFILE_SERIALIZER
-**Type:** `str`
+## SERIALIZER_CLASSES
+**Type:** `dict`
 
-**Default:** 'xauth.serializers.ProfileSerializer'
+**Default:** None
 
-**Usage:** Serializers allow complex data such as querysets and model instances to be converted to native Python data 
-types that can then be easily rendered into JSON, XML or other content types. More on serializers can be found 
-[here][drf-serializer-url] or [here][drf-serializer-tutorial-url].
-
-**Note:** `fields` declared in this serializer will be inherited by `xauth.serializer.SignUpSerializer` with addition 
-of `password` field that is only relevant for sign-up.
-
-### Guidelines
-`django-rest-xauth` makes the following assumptions of the serializer class it expects from this setting:
-
- 1. It is a direct or indirect subclass of `rest_framework.serializers.Serializer`.
- 2. It contains a nested `Meta` class which contains a `model` and `fields` properties.
-
-**Consider an example of this default serializer class**
-```python
-from rest_framework import serializers
-from django.contrib.auth import get_user_model
-
-class ProfileSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='xauth:profile')
-
-    class Meta:
-        model = get_user_model()
-        fields = tuple(get_user_model().PUBLIC_READ_WRITE_FIELDS) + ('url',)
-        read_only_fields = tuple(get_user_model().READ_ONLY_FIELDS)
-```
+**Usage:** Updates `request` and `response` serializer classes for `profile` and `signup` views.
 
 ## APP_NAME
 **Type**: `str`
@@ -136,24 +111,6 @@ the `django-rest-xauth` should be channelled.
 **Default**: `timedelta(days=1)`
 
 **Usage**: period within which a user will be considered new from the time of account creation.
-
-## WRAP_DRF_RESPONSE
-**Type**: `bool`
-
-**Default**: `False`
-
-**Usage**: if `True` json responses will be in the format illustrated
-```json
-{
-  "is_error": true,
-  "status_code": 200,
-  "message": "message",
-  "debug_message": "debug message",
-  "payload": ...,
-  "metadata": ...,
-}
-```
-`payload` key will now contain the data that would otherwise been shown before setting to `True`
 
 ## POST_REQUEST_USERNAME_FIELD
 **Type**: `str`

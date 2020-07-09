@@ -18,14 +18,19 @@ XAUTH = {
     'TEMPORARY_PASSWORD_EXPIRY': timedelta(minutes=30),
     'VERIFICATION_CODE_LENGTH': 6,
     'TEMPORARY_PASSWORD_LENGTH': 8,
-    'WRAP_DRF_RESPONSE': False,
     'REQUEST_TOKEN_ENCRYPTED': True,
     'POST_REQUEST_USERNAME_FIELD': 'username',
     'POST_REQUEST_PASSWORD_FIELD': 'password',
     'EMAIL_TEMPLATES_DIRECTORY': 'xauth/mails/',
     'EMAIL_TEMPLATE_SUFFIX': 'html',
-    'SERIALIZERS_CLASSES': {
-        'PROFILE': '',
-        'SIGN_UP_REQUEST': None,
+    'SERIALIZER_CLASSES': {
+        'PROFILE': {
+            'REQUEST': None,
+            'RESPONSE': None,
+        },
+        'SIGN_UP': {
+            'REQUEST': None,
+            'RESPONSE': None,
+        },
     },
 }
