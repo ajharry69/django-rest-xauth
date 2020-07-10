@@ -4,16 +4,6 @@ from rest_framework import serializers
 from xauth.serializers.profile import request_serializer_class
 
 
-class RequestSerializer(serializers.Serializer):
-    """TODO: Add tests"""
-
-    def update(self, instance, validated_data):
-        return validated_data
-
-    def create(self, validated_data):
-        return validated_data
-
-
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
     normal = serializers.CharField(source='token.tokens.normal', read_only=True, )
     encrypted = serializers.CharField(source='token.tokens.encrypted', read_only=True, )

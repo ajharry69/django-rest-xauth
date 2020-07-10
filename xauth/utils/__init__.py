@@ -37,12 +37,20 @@ def is_http_response_success(status_code: int) -> bool:
     return re.match(r'^2\d{2}$', str(status_code)) is not None
 
 
-def get_class(module_class_name: str, default):
+def get_unique_identifier(obj):
+    return f'{obj.__module__}.{obj.__name__}.{obj.__qualname__}.{repr(obj)}' if obj else None
+
+
+def get_class(module_class_name: str, default=None):
     """
     TODO: Add test cases
     Gets a class "name" from `module_class_name`. Example, 'xauth.views.SignInView' would return `SignInView`
     """
-    if valid_str(module_class_name):
-        module_name, class_name = module_class_name.rsplit('.', 1)
-        return getattr(importlib.import_module(module_name), class_name)
-    return default
+    class_name = default
+    try:
+        if valid_str(module_class_name):
+            module_name, class_name = module_class_name.rsplit('.', 1)
+            class_name = getattr(importlib.import_module(module_name), class_name, default)
+    except (AttributeError, ValueError):
+        pass
+    return class_name
