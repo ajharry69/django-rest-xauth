@@ -5,6 +5,8 @@ from xauth.serializers.profile import request_serializer_class
 
 
 class RequestSerializer(serializers.Serializer):
+    """TODO: Add tests"""
+
     def update(self, instance, validated_data):
         return validated_data
 

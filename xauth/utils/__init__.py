@@ -39,6 +39,7 @@ def is_http_response_success(status_code: int) -> bool:
 
 def get_class(module_class_name: str, default):
     """
+    TODO: Add test cases
     Gets a class "name" from `module_class_name`. Example, 'xauth.views.SignInView' would return `SignInView`
     """
     if valid_str(module_class_name):

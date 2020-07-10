@@ -1,6 +1,3 @@
-import json
-
-
 class ErrorResponse:
 
     def __init__(self, error=None, **kwargs):
@@ -11,6 +8,3 @@ class ErrorResponse:
     @property
     def data(self):
         return dict((k, v) for k, v in self.__dict__.items() if v)
-
-    def __repr__(self):
-        return json.dumps(self.data)
