@@ -3,15 +3,20 @@ from rest_framework.response import Response
 
 
 class _BaseAPIView(views.APIView):
+    many = False
+    # on provides (`dict`) data usable in `serializer_class_response`
     serializer_class = None
+    # does normal operations of `serializer_class` would it not have been used to provide data
     serializer_class_response = None
     permission_classes = [permissions.AllowAny, ]
 
-    def process_request(self, request, success_status_code: int = status.HTTP_200_OK):
+    def process_request(self, request, success_status_code: int = status.HTTP_200_OK, instance=None):
         try:
             request_data = self.get_request_data(request)
             serializer = self.serializer_class_response(
+                instance=instance,
                 data=request_data,
+                many=self.many,
                 context={'request': request},
             )
             if serializer.is_valid():
@@ -51,14 +56,15 @@ class CreateAPIView(_BaseAPIView):
     def post(self, request, format=None):
         return self.process_request(request, status.HTTP_201_CREATED)
 
-
-class RetrieveAPIView(_BaseAPIView):
-    def get(self, request, format=None):
-        return self.process_request(request)
-
-    def on_valid_serializer(self, serializer):
-        pass
-
-
-class CreateRetrieveAPIView(CreateAPIView, RetrieveAPIView):
-    pass
+# class RetrieveManyAPIView(_BaseAPIView):
+#     many = True
+#
+#     def get(self, request, format=None):
+#         return self.process_request(request)
+#
+#     def on_valid_serializer(self, serializer):
+#         pass
+#
+#
+# class CreateRetrieveAPIView(CreateAPIView, RetrieveManyAPIView):
+#     pass
