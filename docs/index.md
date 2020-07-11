@@ -7,14 +7,20 @@
 [![PyPI version](https://badge.fury.io/py/django-rest-xauth.svg)](https://badge.fury.io/py/django-rest-xauth)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-rest-xauth)
 
-A [custom user model][django-customizing-user-model-url] based django-package to implement a **secure and easily 
-customizable [JWT][jwt-url] and [Basic][basic-auth-url]** authentication in 5 simple steps for django project(s). It 
- provides JSON formatted REST API end-points for signup, signin, email verification, password resetting and account 
- activation.
+A [custom user model][django-customizing-user-model-url] based django-package to implement [JWT][jwt-url] and 
+[Basic][basic-auth-url] authentication and authorization flow in a few simple steps.
+
+The package provides ready to use JSON formatted REST API end-points for signup, sign-in, email verification, password 
+reset and account activation.
  
-Email verification and password resetting are based on hashed verification-code and temporary password respectively. 
+Email verification and password reset are based on hashed, short-lived verification-code and temporary password. 
 Account activation is based on a combination of user selected security question(provided through the admin portal by 
-site administrator(superuser)) and an answer.
+site administrator(superuser)) and an answer that is hashed and stored in the database.
+
+By design, the logic for requesting and confirming password reset, account verification and activation is implemented in 
+the `AbstractUser` model class to make it easy to customize every step. For example, instead of sending verification codes 
+to users via email(default), you could opt to use SMS by overriding `request_verification(...)` method in the abstract 
+class or using the returned code in your views.
 
 ## What makes django-rest-xauth different
 
@@ -73,8 +79,14 @@ urlpatterns = [
 - Run `python manage.py runserver` to start the development server.
 - Visit `http://127.0.0.1:8000/accounts/signup/` to register a new account.
 
+## API endpoints
+Read more [here][documentation-endpoints-url].
+
+## Documentation and support
+Full documentation for the project is available [here][documentation-url].
+
 ## Contributing
-Please be sure to review [contributing guidelines](about/contributing.md) to learn how to help the project.
+Please be sure to review [contributing guidelines](docs/about/contributing.md) to learn how to help the project.
 
 ## Postman Team
 [Join][postman-team-join-url] postman team.
@@ -84,3 +96,5 @@ Please be sure to review [contributing guidelines](about/contributing.md) to lea
 [postman-team-join-url]: https://app.getpostman.com/join-team?invite_code=b3ee38bf5dc02c6e7be11bd2e2e15573&ws=5e9ffb87-2dc7-4778-aece-4c8230419340
 [django-auth-user-model-setting-url]: https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 [django-customizing-user-model-url]: https://docs.djangoproject.com/en/dev/topics/auth/customizing/
+[documentation-url]: https://django-rest-xauth.readthedocs.io/en/latest/
+[documentation-endpoints-url]: https://django-rest-xauth.readthedocs.io/en/latest/api-guide/endpoints/
