@@ -7,14 +7,20 @@
 [![PyPI version](https://badge.fury.io/py/django-rest-xauth.svg)](https://badge.fury.io/py/django-rest-xauth)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-rest-xauth)
 
-A [custom user model][django-customizing-user-model-url] based django-package to implement a **secure and easily 
-customizable [JWT][jwt-url] and [Basic][basic-auth-url]** authentication in 5 simple steps for django project(s). It 
- provides JSON formatted REST API end-points for signup, signin, email verification, password resetting and account 
- activation.
+A [custom user model][django-customizing-user-model-url] based django-package to implement [JWT][jwt-url] and 
+[Basic][basic-auth-url] authentication and authorization flow in a few simple steps.
+
+The package provides ready to use JSON formatted REST API end-points for signup, sign-in, email verification, password 
+reset and account activation.
  
-Email verification and password resetting are based on hashed verification-code and temporary password respectively. 
+Email verification and password reset are based on hashed, short-lived verification-code and temporary password. 
 Account activation is based on a combination of user selected security question(provided through the admin portal by 
-site administrator(superuser)) and an answer.
+site administrator(superuser)) and an answer that is hashed and stored in the database.
+
+By design, the logic for requesting and confirming password reset, account verification and activation is implemented in 
+the `AbstractUser` model class to make it easy to customize every step. For example, instead of sending verification codes 
+to users via email(default), you could opt to use SMS by overriding `request_verification(...)` method in the abstract 
+class or using the returned code in your views.
 
 ## What makes django-rest-xauth different
 

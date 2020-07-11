@@ -1,4 +1,4 @@
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 
 def get_next_version(old_version: str = __version__, max_minor: int = 9, max_patch: int = 9):

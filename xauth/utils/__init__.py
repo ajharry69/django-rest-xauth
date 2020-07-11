@@ -43,7 +43,6 @@ def get_unique_identifier(obj):
 
 def get_class(module_class_name: str, default=None):
     """
-    TODO: Add test cases
     Gets a class "name" from `module_class_name`. Example, 'xauth.views.SignInView' would return `SignInView`
     """
     class_name = default
@@ -51,6 +50,6 @@ def get_class(module_class_name: str, default=None):
         if valid_str(module_class_name):
             module_name, class_name = module_class_name.rsplit('.', 1)
             class_name = getattr(importlib.import_module(module_name), class_name, default)
-    except (AttributeError, ValueError):
+    except (AttributeError, ValueError, ModuleNotFoundError):
         pass
     return class_name

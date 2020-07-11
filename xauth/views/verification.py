@@ -15,10 +15,7 @@ class VerificationRequestView(views.APIView):
         user = request.user
         # new verification code resend or request is been made
         token, code = user.request_verification(send_mail=True)
-        return Response(
-            data=self.serializer_class(user, ).data,
-            status=status.HTTP_200_OK,
-        )
+        return Response(data=self.serializer_class(user, ).data, status=status.HTTP_200_OK, )
 
 
 class VerificationConfirmView(VerificationRequestView):
@@ -35,8 +32,7 @@ class VerificationConfirmView(VerificationRequestView):
     """
 
     def post(self, request, format=None):
-        user = request.user
-        operation = request.query_params.get('operation', 'confirm').lower()
+        user, operation = request.user, request.query_params.get('operation', 'confirm').lower()
         if re.match('^(re(send|quest)|send)$', operation):
             # new verification code resend or request is been made
             return super(VerificationConfirmView, self).post(request, format)
@@ -49,7 +45,4 @@ class VerificationConfirmView(VerificationRequestView):
                 data, status_code = self.serializer_class(user, ).data, None
             else:
                 data, status_code = {'error': message}, status.HTTP_400_BAD_REQUEST
-        return Response(
-            data=data,
-            status=status_code or status.HTTP_200_OK,
-        )
+        return Response(data=data, status=status_code or status.HTTP_200_OK, )

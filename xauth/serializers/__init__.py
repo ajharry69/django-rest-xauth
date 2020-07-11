@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from xauth.serializers.profile import request_serializer_class
+from xauth.serializers import profile
+from xauth.utils import get_class
+from xauth.utils.settings import PROFILE_REQUEST_SERIALIZER
 
 
 class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
@@ -13,11 +15,11 @@ class AuthTokenOnlySerializer(serializers.HyperlinkedModelSerializer):
         fields = 'normal', 'encrypted',
 
 
-class AuthSerializer(request_serializer_class):
+class AuthSerializer(get_class(PROFILE_REQUEST_SERIALIZER, profile.ProfileSerializer)):
     token = serializers.DictField(source='token.tokens', read_only=True, )
 
-    class Meta(request_serializer_class.Meta):
-        fields = tuple(request_serializer_class.Meta.fields) + ('token',)
+    class Meta(get_class(PROFILE_REQUEST_SERIALIZER, profile.ProfileSerializer).Meta):
+        fields = tuple(get_class(PROFILE_REQUEST_SERIALIZER, profile.ProfileSerializer).Meta.fields) + ('token',)
 
     def validate(self, attrs):
         return super().validate(attrs)

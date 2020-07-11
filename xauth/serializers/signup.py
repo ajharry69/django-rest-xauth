@@ -2,8 +2,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from xauth.serializers import AuthSerializer
-from xauth.utils import get_class
-from xauth.utils.settings import SIGNUP_REQUEST_SERIALIZER, SIGNUP_RESPONSE_SERIALIZER
 
 
 class SignUpSerializer(AuthSerializer):
@@ -23,7 +21,3 @@ class SignUpSerializer(AuthSerializer):
             user.password = user.get_hashed(user.password)
             user.save()
         return user
-
-
-request_serializer_class = get_class(SIGNUP_REQUEST_SERIALIZER, SignUpSerializer)
-response_serializer_class = get_class(SIGNUP_RESPONSE_SERIALIZER, SignUpSerializer)
