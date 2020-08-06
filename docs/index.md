@@ -34,11 +34,6 @@ class or using the returned code in your views.
 - Temporary password based user password reset
 - Verification code based user account activation.
 
->**N/B:** _temporary passwords_ and _verification codes_ are both generated and returned from the `User` model hence 
->opting to SMS based sending of the _verification codes_ and _temporary passwords_ should be as easy as extending the 
->`User` model, overriding a single method(that also generates and returns the code) and finally changing django's 
->`AUTH_USER_MODEL` to your model name as [explained here][django-auth-user-model-setting-url].
-
 ## Quick start
 - Install package `pip install django-rest-xauth`
 
