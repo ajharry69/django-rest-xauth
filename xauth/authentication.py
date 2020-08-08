@@ -2,6 +2,7 @@ import base64
 import re
 
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from jwcrypto import jwt, jwe
 from rest_framework import authentication as drf_auth, exceptions as drf_exception
 
@@ -119,7 +120,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         self.auth_scheme = 'Basic'
         try:
             if valid_str(username) and valid_str(password):
-                user = get_user_model().objects.get_by_natural_key(username)
+                user = get_user_model().objects.get(Q(username=username) | Q(email=username))
                 if user.check_password(raw_password=password) is False:
                     # user was found but password does not match
                     # log user's failed sign-in attempt
