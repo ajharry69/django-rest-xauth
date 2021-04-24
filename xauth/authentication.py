@@ -6,7 +6,7 @@ from django.db.models import Q
 from jwcrypto import jwt, jwe
 from rest_framework import authentication as drf_auth, exceptions as drf_exception
 
-from xauth.utils import valid_str, settings
+from xauth.utils import is_valid_str, settings
 from xauth.utils.token import Token
 
 
@@ -23,7 +23,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         auth = None
         authorization_header = drf_auth.get_authorization_header(request)
         auth_header = authorization_header.decode() if isinstance(authorization_header, bytes) else authorization_header
-        if valid_str(auth_header):
+        if is_valid_str(auth_header):
             # an authorization header was provided
             # separate auth-scheme/auth-type(e.g. Bearer, Token, Basic) from auth-data/auth-payload(e.g. base64url
             # encoding of username & password combination for Basic auth or Bearer|Token value/data)
@@ -119,7 +119,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         """
         self.auth_scheme = 'Basic'
         try:
-            if valid_str(username) and valid_str(password):
+            if is_valid_str(username) and is_valid_str(password):
                 user = get_user_model().objects.get(Q(username=username) | Q(email=username))
                 if user.check_password(raw_password=password) is False:
                     # user was found but password does not match

@@ -4,7 +4,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import xauth.models
+import xauth.apps.account.models
 
 
 class Migration(migrations.Migration):
@@ -124,7 +124,7 @@ class Migration(migrations.Migration):
                  models.DateTimeField(blank=True, null=True, verbose_name='verification code generation time')),
                 ('deactivation_time',
                  models.DateTimeField(blank=True, null=True, verbose_name="user account's deactivation time")),
-                ('security_question', models.ForeignKey(default=xauth.models.default_security_question,
+                ('security_question', models.ForeignKey(default=xauth.apps.account.models.default_security_question,
                                                         on_delete=django.db.models.deletion.SET_DEFAULT,
                                                         to='xauth.SecurityQuestion')),
             ],

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from xauth.models import SecurityQuestion
+from xauth.apps.account.models import SecurityQuestion
 from xauth.permissions import *
 from xauth.serializers.security_question.admin import SecurityQuestionSerializer
 

@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import gettext_lazy as _
 
-from .models import SecurityQuestion, Metadata
+from xauth.apps.account.models import SecurityQuestion, Metadata
 
 
 class MetadataInline(admin.StackedInline):

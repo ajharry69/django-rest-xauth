@@ -3,16 +3,16 @@ import re
 from datetime import datetime, date
 
 import timeago
-from django.contrib.auth import models as dj_auth_models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.utils.datetime_safe import date as dj_date, datetime as dj_datetime
 from django.utils.translation import gettext_lazy as _
 
-from .utils import enums, valid_str, reset_empty_nullable_to_null
-from .utils.mail import Mail
-from .utils.settings import *
-from .utils.token import Token
+from xauth.utils import enums, is_valid_str, reset_empty_nullable_to_null
+from xauth.utils.mail import Mail
+from xauth.utils.settings import *
+from xauth.utils.token import Token
 
 
 def default_security_question():
@@ -20,7 +20,7 @@ def default_security_question():
     return SecurityQuestion.objects.order_by('id').first()
 
 
-class UserManager(dj_auth_models.BaseUserManager):
+class UserManager(BaseUserManager):
     def create_user(
             self, email,
             username=None,
@@ -38,7 +38,7 @@ class UserManager(dj_auth_models.BaseUserManager):
         return user
 
     def create_superuser(self, email, username, password, first_name=None, last_name=None, ):
-        if not valid_str(password):
+        if not is_valid_str(password):
             # password was not provided
             raise ValueError('superuser password is required')
         user = self.create_user(email, username, password, first_name=first_name, last_name=last_name, )
@@ -51,7 +51,7 @@ class UserManager(dj_auth_models.BaseUserManager):
 
     def __user(self, email, username, password, surname=None, first_name=None, last_name=None,
                mobile_number=None, date_of_birth=None, provider=None, ):
-        if not valid_str(email):
+        if not is_valid_str(email):
             raise ValueError('email is required')
         return self.model(
             email=self.normalize_email(email),
@@ -66,7 +66,7 @@ class UserManager(dj_auth_models.BaseUserManager):
         )
 
 
-class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMixin):
+class AbstractUser(AbstractBaseUser, PermissionsMixin):
     """
     Guidelines: https://docs.djangoproject.com/en/3.0/topics/auth/customizing/
     """
@@ -125,10 +125,10 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         use email as the username if it wasn't provided
         """
         # TODO: split name if contains space to surname, firstname, lastname
-        self.provider = self.provider if valid_str(self.provider) else self.__DEFAULT_PROVIDER
+        self.provider = self.provider if is_valid_str(self.provider) else self.__DEFAULT_PROVIDER
         _username = self.username
         self.username = self.normalize_username(_username if _username and len(_username) > 0 else self.email)
-        if not valid_str(self.password):
+        if not is_valid_str(self.password):
             # do not store a null(None) password
             self.set_unusable_password()
         self.is_verified = self.__get_ascertained_verification_status()
@@ -149,7 +149,7 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         if len(name) < 1:
             # name is empty, use username instead
             name = self.username
-        return name if name and valid_str(name) else None
+        return name if name and is_valid_str(name) else None
 
     def get_short_name(self):
         """
@@ -158,7 +158,7 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         the user's real name, we return their username instead.
         """
         name = self.get_full_name()
-        if valid_str(name):
+        if is_valid_str(name):
             return name.split()[0] if ' ' in name else name
         return name
 
@@ -190,7 +190,7 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         if self.date_of_birth is None:
             return 0
         from datetime import datetime
-        unit = unit.lower() if valid_str(unit) else 'y'
+        unit = unit.lower() if is_valid_str(unit) else 'y'
         days = (datetime.now().date() - datetime.strptime(self.date_of_birth, DATE_INPUT_FORMAT).date()).days
         _age = days
         if re.match('^y+', unit):
@@ -460,7 +460,7 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         :param locale the locale in which the response is to be returned. Default is english(en)
         :return: message of duration passed in the format "3 months ago"
         """
-        locale = locale if valid_str(locale) else 'en'
+        locale = locale if is_valid_str(locale) else 'en'
         password_reset = PasswordResetLog.objects.filter(
             user=self,
             change_time__isnull=False,
@@ -557,7 +557,7 @@ class AbstractUser(dj_auth_models.AbstractBaseUser, dj_auth_models.PermissionsMi
         # temporarily hold the user's password
         acc_password = self.password
         # hash the code. will reinitialize the password
-        self.set_password(raw) if valid_str(raw) else self.set_unusable_password()
+        self.set_password(raw) if is_valid_str(raw) else self.set_unusable_password()
         code = self.password  # hashed code retrieved from password
         # re-[instate|initialize] user's password to it's previous value
         self.password = acc_password
@@ -609,7 +609,7 @@ class Metadata(models.Model):
     :cvar verification_code hashed short-live code expected to be used for account verification
     """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True, )
-    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_DEFAULT,
+    security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_DEFAULT,
                                           default=default_security_question, )
     security_question_answer = models.CharField(max_length=PASSWORD_LENGTH, blank=False, null=True)
     temporary_password = models.CharField(max_length=PASSWORD_LENGTH, blank=False, null=True)
@@ -621,9 +621,9 @@ class Metadata(models.Model):
     def save(self, *args, **kwargs):
         raw_code = self.verification_code
         raw_password = self.temporary_password
-        if valid_str(raw_code):
+        if is_valid_str(raw_code):
             self.verification_code = self._get_hashed(raw_code)
-        if valid_str(raw_password):
+        if is_valid_str(raw_password):
             self.temporary_password = self._get_hashed(raw_password)
         self.__reinitialize_security_answer()
         super(Metadata, self).save(*args, **kwargs)
@@ -686,7 +686,7 @@ class Metadata(models.Model):
                 self.security_question_answer = hashed_answer
         else:
             # question is unusable
-            if not valid_str(self.security_question_answer):
+            if not is_valid_str(self.security_question_answer):
                 # set an un-usable password for an unusable account
                 self.security_question_answer = hashed_answer
 

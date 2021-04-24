@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
-from xauth.models import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
+from xauth.apps.account.models import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
 from xauth.utils.settings import *
 
 

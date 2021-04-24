@@ -1,6 +1,6 @@
 from django.test.testcases import TestCase
 
-from xauth import admin
+from xauth.apps.account import admin
 
 
 class UserCreationFormTestCase(TestCase):

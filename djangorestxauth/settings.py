@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'demo.apps.DemoConfig',
-    'xauth.apps.XauthConfig',
+    'xauth.apps.AppConfig',
     'rest_framework',
     'django_extensions',
 ]

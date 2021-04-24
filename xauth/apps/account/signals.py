@@ -1,6 +1,6 @@
 from django.db.models.signals import post_migrate
 
-from xauth.models import default_security_question
+from xauth.apps.account.models import default_security_question
 
 
 def on_post_migrate(sender, **kwargs):

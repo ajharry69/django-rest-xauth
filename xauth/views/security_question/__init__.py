@@ -3,8 +3,8 @@ from rest_framework import views, status
 from rest_framework.response import Response
 
 from xauth import permissions
-from xauth.models import SecurityQuestion
-from xauth.utils import valid_str
+from xauth.apps.account.models import SecurityQuestion
+from xauth.utils import is_valid_str
 
 
 class AddSecurityQuestionView(views.APIView):
@@ -23,7 +23,7 @@ class AddSecurityQuestionView(views.APIView):
         question = SecurityQuestion.objects.filter(
             Q(question=question_id) | Q(id=question_id),
         ).first()
-        if question and valid_str(answer):
+        if question and is_valid_str(answer):
             # question was found and answer is a valid string
             user.add_security_question(question, answer)
             data, status_code = {'success': 'security question added successfully'}, status.HTTP_200_OK

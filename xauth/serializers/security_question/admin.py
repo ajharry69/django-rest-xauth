@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from xauth.models import SecurityQuestion
+from xauth.apps.account.models import SecurityQuestion
 
 
 class SecurityQuestionSerializer(serializers.HyperlinkedModelSerializer):

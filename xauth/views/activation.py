@@ -7,7 +7,7 @@ from rest_framework import permissions
 from rest_framework import views, status
 from rest_framework.response import Response
 
-from xauth.models import Metadata
+from xauth.apps.account.models import Metadata
 from xauth.serializers import AuthTokenOnlySerializer
 
 

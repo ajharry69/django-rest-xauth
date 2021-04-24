@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from xauth.models import AccessLog
+from xauth.apps.account.models import AccessLog
 from tests import *
 
 

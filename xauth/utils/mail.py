@@ -1,4 +1,4 @@
-from xauth.tasks import send_mail_async
+from xauth.apps.account.tasks import send_mail_async
 from .settings import *
 
 

@@ -4,7 +4,7 @@ import re
 from xauth.utils.settings import XAUTH
 
 
-def valid_str(string, length: int = 1) -> bool:
+def is_valid_str(string, length: int = 1) -> bool:
     """
     Checks for `string`'s null(not None and length) status
 
@@ -26,7 +26,7 @@ def reset_empty_nullable_to_null(obj, fields):
     """
     for f in fields:
         val = getattr(obj, f)
-        if isinstance(val, str) and not valid_str(val):
+        if isinstance(val, str) and not is_valid_str(val):
             setattr(obj, f, None)
 
 
@@ -47,7 +47,7 @@ def get_class(module_class_name: str, default=None):
     """
     class_name = default
     try:
-        if valid_str(module_class_name):
+        if is_valid_str(module_class_name):
             module_name, class_name = module_class_name.rsplit('.', 1)
             class_name = getattr(importlib.import_module(module_name), class_name, default)
     except (AttributeError, ValueError, ModuleNotFoundError):
