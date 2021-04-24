@@ -11,37 +11,60 @@ from django.utils.translation import gettext_lazy as _
 
 from xauth.utils import enums, is_valid_str, reset_empty_nullable_to_null
 from xauth.utils.mail import Mail
-from xauth.utils.settings import *
+from xauth.utils.settings import *  # noqa
 from xauth.utils.token import Token
 
 
 def default_security_question():
-    response = SecurityQuestion.objects.get_or_create(question='Default', usable=False, )
-    return SecurityQuestion.objects.order_by('id').first()
+    SecurityQuestion.objects.get_or_create(question="Default", usable=False)
+    return SecurityQuestion.objects.order_by("id").first()
 
 
 class UserManager(BaseUserManager):
     def create_user(
-            self, email,
-            username=None,
-            password=None,
-            surname=None,
-            first_name=None,
-            last_name=None,
-            mobile_number=None,
-            date_of_birth=None,
-            provider=None, ):
-        user = self.__user(email, username, password, surname, first_name, last_name, mobile_number,
-                           date_of_birth, )
+        self,
+        email,
+        username=None,
+        password=None,
+        surname=None,
+        first_name=None,
+        last_name=None,
+        mobile_number=None,
+        date_of_birth=None,
+        provider=None,
+    ):
+        user = self.__user(
+            email,
+            username,
+            password,
+            surname,
+            first_name,
+            last_name,
+            mobile_number,
+            date_of_birth,
+        )
         user.password = user.get_hashed(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password, first_name=None, last_name=None, ):
+    def create_superuser(
+        self,
+        email,
+        username,
+        password,
+        first_name=None,
+        last_name=None,
+    ):
         if not is_valid_str(password):
             # password was not provided
-            raise ValueError('superuser password is required')
-        user = self.create_user(email, username, password, first_name=first_name, last_name=last_name, )
+            raise ValueError("superuser password is required")
+        user = self.create_user(
+            email,
+            username,
+            password,
+            first_name=first_name,
+            last_name=last_name,
+        )
         user.is_active = True
         user.is_staff = True
         user.is_superuser = True
@@ -49,10 +72,20 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def __user(self, email, username, password, surname=None, first_name=None, last_name=None,
-               mobile_number=None, date_of_birth=None, provider=None, ):
+    def __user(
+        self,
+        email,
+        username,
+        password,
+        surname=None,
+        first_name=None,
+        last_name=None,
+        mobile_number=None,
+        date_of_birth=None,
+        provider=None,
+    ):
         if not is_valid_str(email):
-            raise ValueError('email is required')
+            raise ValueError("email is required")
         return self.model(
             email=self.normalize_email(email),
             username=username,
@@ -70,6 +103,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     """
     Guidelines: https://docs.djangoproject.com/en/3.0/topics/auth/customizing/
     """
+
     __DEVICE_IP = None
     __PROVIDERS = [(k, k) for k, _ in enums.AuthProvider.__members__.items()]
     __DEFAULT_PROVIDER = enums.AuthProvider.EMAIL.name
@@ -91,27 +125,54 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'username'
-    EMAIL_FIELD = 'email'  # returned by get_email_field_name()
+    USERNAME_FIELD = "username"
+    EMAIL_FIELD = "email"  # returned by get_email_field_name()
 
     # all the fields listed here(including the USERNAME_FIELD and password) are
     # expected as part of parameters in `objects`(UserManager).create_superuser
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', ]
+    REQUIRED_FIELDS = [
+        "email",
+        "first_name",
+        "last_name",
+    ]
 
     # Contains a tuple of fields that are "safe" to access publicly with proper
     # caution taken for modification
-    READ_ONLY_FIELDS = ('id', 'is_superuser', 'is_staff', 'is_verified',)
+    READ_ONLY_FIELDS = (
+        "id",
+        "is_superuser",
+        "is_staff",
+        "is_verified",
+    )
 
-    WRITE_ONLY_FIELDS = ('password',)
+    WRITE_ONLY_FIELDS = ("password",)
 
     # Contains a tuple of fields that are likely to have a null(None) value
-    NULLABLE_FIELDS = ('surname', 'first_name', 'last_name', 'mobile_number', 'date_of_birth',)
+    NULLABLE_FIELDS = (
+        "surname",
+        "first_name",
+        "last_name",
+        "mobile_number",
+        "date_of_birth",
+    )
 
     # Contains a tuple of fields that are "safe" to access publicly
-    PUBLIC_READ_WRITE_FIELDS = ('username', 'email', 'provider',) + NULLABLE_FIELDS + READ_ONLY_FIELDS
+    PUBLIC_READ_WRITE_FIELDS = (
+        (
+            "username",
+            "email",
+            "provider",
+        )
+        + NULLABLE_FIELDS
+        + READ_ONLY_FIELDS
+    )
 
     class Meta:
-        ordering = ('created_at', 'updated_at', 'username',)
+        ordering = (
+            "created_at",
+            "updated_at",
+            "username",
+        )
         abstract = True
 
     def __str__(self):
@@ -141,11 +202,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         Typically this would be the user's first and last name. Since we do
         not store the user's real name, we return their username instead.
         """
-        s_name = self.surname.strip().capitalize() if self.surname else ''
-        f_name = self.first_name.strip().capitalize() if self.first_name else ''
-        l_name = self.last_name.strip().capitalize() if self.last_name else ''
+        s_name = self.surname.strip().capitalize() if self.surname else ""
+        f_name = self.first_name.strip().capitalize() if self.first_name else ""
+        l_name = self.last_name.strip().capitalize() if self.last_name else ""
         # trim off spaces at the start and/or end
-        name = f'{s_name} {f_name} {l_name}'.strip()
+        name = f"{s_name} {f_name} {l_name}".strip()
         if len(name) < 1:
             # name is empty, use username instead
             name = self.username
@@ -159,7 +220,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         """
         name = self.get_full_name()
         if is_valid_str(name):
-            return name.split()[0] if ' ' in name else name
+            return name.split()[0] if " " in name else name
         return name
 
     def is_newbie(self, period: timedelta = NEWBIE_VALIDITY_PERIOD):
@@ -173,11 +234,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         return now >= self.created_at >= (now - period)
 
     # Used in django admin site
-    is_newbie.admin_order_field = 'created_at'
+    is_newbie.admin_order_field = "created_at"
     is_newbie.boolean = True
-    is_newbie.short_description = 'Newbie?'
+    is_newbie.short_description = "Newbie?"
 
-    def age(self, unit='y'):
+    def age(self, unit="y"):
         """
         Calculates user's **APPROXIMATE** age from `self.date_of_birth`
 
@@ -190,16 +251,17 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if self.date_of_birth is None:
             return 0
         from datetime import datetime
-        unit = unit.lower() if is_valid_str(unit) else 'y'
+
+        unit = unit.lower() if is_valid_str(unit) else "y"
         days = (datetime.now().date() - datetime.strptime(self.date_of_birth, DATE_INPUT_FORMAT).date()).days
         _age = days
-        if re.match('^y+', unit):
+        if re.match("^y+", unit):
             _age = int(days / 365)
-        elif re.match('^m+', unit):
+        elif re.match("^m+", unit):
             _age = int(days / 30)
-        elif re.match('^w+', unit):
+        elif re.match("^w+", unit):
             _age = int(days / 7)
-        elif re.match('^d+', unit):
+        elif re.match("^d+", unit):
             _age = days
         return _age
 
@@ -227,15 +289,22 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         """
         if not self.is_active:
             return self.activation_token
-        return self.verification_token if self.requires_verification else Token(self.token_payload(),
-                                                                                expiry_period=TOKEN_EXPIRY)
+        return (
+            self.verification_token
+            if self.requires_verification
+            else Token(self.token_payload(), expiry_period=TOKEN_EXPIRY)
+        )
 
     @property
     def password_reset_token(self):
         """
         :return: dict of containing pair of encrypted and unencrypted(normal) token for password reset
         """
-        return Token(self.token_payload(), expiry_period=TEMPORARY_PASSWORD_EXPIRY, subject='password-reset', )
+        return Token(
+            self.token_payload(),
+            expiry_period=TEMPORARY_PASSWORD_EXPIRY,
+            subject="password-reset",
+        )
 
     @property
     def verification_token(self):
@@ -243,7 +312,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         :return: dict of containing pair of encrypted and unencrypted(normal) token for user account
         verification
         """
-        return Token(self.token_payload(), expiry_period=VERIFICATION_CODE_EXPIRY, subject='verification', )
+        return Token(
+            self.token_payload(),
+            expiry_period=VERIFICATION_CODE_EXPIRY,
+            subject="verification",
+        )
 
     @property
     def activation_token(self):
@@ -251,7 +324,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         :return: dict of containing pair of encrypted and unencrypted(normal) token for user account
         activation
         """
-        return Token(self.token_payload(), expiry_period=ACCOUNT_ACTIVATION_TOKEN_EXPIRY, subject='activation')
+        return Token(self.token_payload(), expiry_period=ACCOUNT_ACTIVATION_TOKEN_EXPIRY, subject="activation")
 
     def request_password_reset(self, send_mail: bool = True):
         """
@@ -263,7 +336,12 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         if send_mail:
             # send user email
-            self.send_email('password-reset-request', {'password': password, }, )
+            self.send_email(
+                "password-reset-request",
+                {
+                    "password": password,
+                },
+            )
 
         # store the verification request data to database
         metadata, _ = Metadata.objects.get_or_create(user_id=self.id)
@@ -292,8 +370,13 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if send_mail:
             # send user email
             # show welcome if the user is new and and is just created a metadata object in db
-            show_welcome = self.is_newbie() and created
-            self.send_email('verification-request', {'code': code, })
+            show_welcome = self.is_newbie() and created  # noqa
+            self.send_email(
+                "verification-request",
+                {
+                    "code": code,
+                },
+            )
 
         # store the verification request data to database
         metadata.verification_code = code
@@ -312,24 +395,24 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         """
         metadata, _ = Metadata.objects.get_or_create(pk=self.id)
         if metadata.is_temporary_password_expired:
-            return None, 'expired'
+            return None, "expired"
         if metadata.check_temporary_password(raw_password=temporary_password):
             # temporary password matched(correct)
             # update user's password
             self.password = self.get_hashed(new_password)
             # prevent hashing of other irrelevant table column(s)
-            self.save(update_fields=['password'])
+            self.save(update_fields=["password"])
             # reset temporary password & password generation time to None
             metadata.temporary_password = None
             metadata.tp_gen_time = None
             # prevent hashing of other irrelevant table column(s)
-            metadata.save(update_fields=['temporary_password', 'tp_gen_time'])
+            metadata.save(update_fields=["temporary_password", "tp_gen_time"])
             # reflect the change to the logs
             self.update_or_create_password_reset_log()
             return self.token, None
         else:
             # temporary password mismatched(incorrect)
-            return None, 'incorrect'
+            return None, "incorrect"
 
     def verify(self, code):
         """
@@ -343,24 +426,24 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             return self.token, None
         metadata, _ = Metadata.objects.get_or_create(pk=self.id)
         if metadata.is_verification_code_expired:
-            return None, 'expired'
+            return None, "expired"
         if metadata.check_verification_code(raw_code=code):
             # verification code matched(correct)
             # update user's verification status
             self.is_verified = True
             # prevent's automatic hashing of irrelevant password
-            self.save(update_fields=['is_verified'])
+            self.save(update_fields=["is_verified"])
             # reset verification code & code generation time to None
             metadata.verification_code = None
             metadata.vc_gen_time = None
             # prevent hashing of other irrelevant table column(s)
-            metadata.save(update_fields=['verification_code', 'vc_gen_time'])
+            metadata.save(update_fields=["verification_code", "vc_gen_time"])
             # user is assumed to have just signed-in since he/she can now access resources
             self.update_or_create_access_log(force_create=True)
             return self.token, None
         else:
             # verification code mismatched(incorrect)
-            return None, 'incorrect'
+            return None, "incorrect"
 
     def activate_account(self, security_question_answer):
         """
@@ -375,11 +458,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if metadata.check_security_question_answer(raw_answer=security_question_answer):
             # answer was correct, activate account
             self.is_active = True
-            self.save(update_fields=['is_active'])
+            self.save(update_fields=["is_active"])
             return self.token, None
         else:
             # wrong answer
-            return None, 'incorrect'
+            return None, "incorrect"
 
     def add_security_question(self, question, answer):
         """
@@ -389,16 +472,30 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         :param answer: answer to the question
         :return: bool. True if question was added successfully and False otherwise
         """
-        metadata, created = Metadata.objects.get_or_create(user=self, )
+        metadata, created = Metadata.objects.get_or_create(
+            user=self,
+        )
         metadata.security_question = question
         metadata.security_question_answer = answer
-        metadata.save(update_fields=['security_question', 'security_question_answer', ])
+        metadata.save(
+            update_fields=[
+                "security_question",
+                "security_question_answer",
+            ]
+        )
         return True
 
-    def send_email(self, template_name: str, context=None, ):
+    def send_email(
+        self,
+        template_name: str,
+        context=None,
+    ):
         context = context if context else {}
-        context['user'] = self
-        address = Mail.Address(self.email, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES, )
+        context["user"] = self
+        address = Mail.Address(
+            self.email,
+            reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES,
+        )
         Mail.send(address=address, template_name=template_name, context=context)
 
     def update_or_create_password_reset_log(self, force_create=False, type=enums.PasswordResetType.RESET):
@@ -410,14 +507,20 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         objects = PasswordResetLog.objects
 
         def create(user):
-            return objects.create(user=user, request_ip=user.device_ip, request_time=timezone.now(),
-                                  change_ip=user.device_ip, change_time=timezone.now(), type=_type, )
+            return objects.create(
+                user=user,
+                request_ip=user.device_ip,
+                request_time=timezone.now(),
+                change_ip=user.device_ip,
+                change_time=timezone.now(),
+                type=_type,
+            )
 
         created = force_create
         if force_create is True:
             log = create(self)
         else:
-            log = objects.filter(user=self, request_ip=self.device_ip, type=_type).order_by('-request_time').first()
+            log = objects.filter(user=self, request_ip=self.device_ip, type=_type).order_by("-request_time").first()
             if log:
                 log.change_ip = self.device_ip
                 log.change_time = timezone.now()
@@ -436,14 +539,26 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         objects = AccessLog.objects
 
         def create(user):
-            return objects.create(user=user, sign_in_ip=user.device_ip, sign_in_time=timezone.now(),
-                                  sign_out_ip=user.device_ip, sign_out_time=timezone.now(), )
+            return objects.create(
+                user=user,
+                sign_in_ip=user.device_ip,
+                sign_in_time=timezone.now(),
+                sign_out_ip=user.device_ip,
+                sign_out_time=timezone.now(),
+            )
 
         created = force_create
         if force_create is True:
             log = create(self)
         else:
-            log = objects.filter(user=self, sign_in_ip=self.device_ip, ).order_by('-sign_in_time').first()
+            log = (
+                objects.filter(
+                    user=self,
+                    sign_in_ip=self.device_ip,
+                )
+                .order_by("-sign_in_time")
+                .first()
+            )
             if log:
                 log.sign_out_ip = self.device_ip
                 log.sign_out_time = timezone.now()
@@ -454,17 +569,21 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
                 created = True
         return log, created
 
-    def get_last_password_change_message(self, locale: str = 'en'):
+    def get_last_password_change_message(self, locale: str = "en"):
         """
         Gets the duration that's passed since the last time a password reset was logged
         :param locale the locale in which the response is to be returned. Default is english(en)
         :return: message of duration passed in the format "3 months ago"
         """
-        locale = locale if is_valid_str(locale) else 'en'
-        password_reset = PasswordResetLog.objects.filter(
-            user=self,
-            change_time__isnull=False,
-        ).order_by('-change_time').first()
+        locale = locale if is_valid_str(locale) else "en"
+        password_reset = (
+            PasswordResetLog.objects.filter(
+                user=self,
+                change_time__isnull=False,
+            )
+            .order_by("-change_time")
+            .first()
+        )
         if password_reset:
             change_time = password_reset.change_time
             tz = change_time.tzinfo
@@ -475,7 +594,13 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         """
         :return: number of sign-in attempts left until account is deactivated
         """
-        attempt = FailedSignInAttempt.objects.filter(user=self, ).order_by('-updated_at').first()
+        attempt = (
+            FailedSignInAttempt.objects.filter(
+                user=self,
+            )
+            .order_by("-updated_at")
+            .first()
+        )
         return self.__remaining_attempts(attempt)
 
     def update_signin_attempts(self, failed: bool):
@@ -488,7 +613,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         _, metered = max_sign_in_attempts()
         attempt, created = FailedSignInAttempt.objects.get_or_create(user=self)
 
-        count_attr = 'attempt_count'
+        count_attr = "attempt_count"
         zero_attempts_count = models.F(count_attr) - models.F(count_attr)
         if created:
             # new record was created
@@ -523,12 +648,13 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         :return: random code
         """
         import random
+
         length = random.randint(8, 10) if length is None or not isinstance(length, int) else length
         rand = None
         if alpha_numeric:
             rand = self.__class__.objects.make_random_password(length=length)
         else:
-            rand = self.__class__.objects.make_random_password(length=length, allowed_chars='23456789')
+            rand = self.__class__.objects.make_random_password(length=length, allowed_chars="23456789")
         return rand
 
     def token_payload(self) -> dict:
@@ -585,16 +711,25 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
 class User(AbstractUser):
     class Meta(AbstractUser.Meta):
-        swappable = 'AUTH_USER_MODEL'
+        swappable = "AUTH_USER_MODEL"
 
 
 class SecurityQuestion(models.Model):
-    question = models.CharField(max_length=255, blank=False, null=False, unique=True, )
-    added_on = models.DateTimeField(auto_now_add=True, )
-    usable = models.BooleanField(default=True, )
+    question = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        unique=True,
+    )
+    added_on = models.DateTimeField(
+        auto_now_add=True,
+    )
+    usable = models.BooleanField(
+        default=True,
+    )
 
     class Meta:
-        ordering = ('added_on',)
+        ordering = ("added_on",)
 
     def __str__(self):
         return self.question
@@ -608,14 +743,22 @@ class Metadata(models.Model):
 
     :cvar verification_code hashed short-live code expected to be used for account verification
     """
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True, )
-    security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_DEFAULT,
-                                          default=default_security_question, )
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    security_question = models.ForeignKey(
+        "accounts.SecurityQuestion",
+        on_delete=models.SET_DEFAULT,
+        default=default_security_question,
+    )
     security_question_answer = models.CharField(max_length=PASSWORD_LENGTH, blank=False, null=True)
     temporary_password = models.CharField(max_length=PASSWORD_LENGTH, blank=False, null=True)
     verification_code = models.CharField(max_length=PASSWORD_LENGTH, blank=False, null=True)
-    tp_gen_time = models.DateTimeField(_('temporary password generation time'), blank=True, null=True)
-    vc_gen_time = models.DateTimeField(_('verification code generation time'), blank=True, null=True)
+    tp_gen_time = models.DateTimeField(_("temporary password generation time"), blank=True, null=True)
+    vc_gen_time = models.DateTimeField(_("verification code generation time"), blank=True, null=True)
     deactivation_time = models.DateTimeField(_("user account's deactivation time"), blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -629,7 +772,7 @@ class Metadata(models.Model):
         super(Metadata, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.security_question}'
+        return f"{self.security_question}"
 
     @property
     def is_verification_code_expired(self):
@@ -699,7 +842,12 @@ class AccessLog(models.Model):
     sign_out_time = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        ordering = ('-sign_in_ip', '-sign_out_ip', '-sign_in_time', '-sign_out_time',)
+        ordering = (
+            "-sign_in_ip",
+            "-sign_out_ip",
+            "-sign_in_time",
+            "-sign_out_time",
+        )
 
     def save(self, *args, **kwargs):
         """
@@ -721,7 +869,12 @@ class PasswordResetLog(models.Model):
     change_time = models.DateTimeField(blank=False, null=True)
 
     class Meta:
-        ordering = ('-request_time', '-change_time', '-request_ip', '-change_ip',)
+        ordering = (
+            "-request_time",
+            "-change_time",
+            "-request_ip",
+            "-change_ip",
+        )
 
 
 class FailedSignInAttempt(models.Model):
@@ -732,7 +885,7 @@ class FailedSignInAttempt(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ('-attempt_date',)
+        ordering = ("-attempt_date",)
 
     @property
     def remaining(self):

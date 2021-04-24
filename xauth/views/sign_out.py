@@ -5,7 +5,9 @@ from rest_framework.response import Response
 
 
 class SignOutView(views.APIView):
-    permission_classes = [permissions.AllowAny, ]
+    permission_classes = [
+        permissions.AllowAny,
+    ]
 
     @staticmethod
     def post(request, format=None):
@@ -13,4 +15,4 @@ class SignOutView(views.APIView):
         if user and not isinstance(user, AnonymousUser):
             user.update_or_create_access_log()
         logout(request)
-        return Response({'success': 'signed out'}, status=status.HTTP_200_OK)
+        return Response({"success": "signed out"}, status=status.HTTP_200_OK)

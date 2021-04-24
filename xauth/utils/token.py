@@ -5,10 +5,10 @@ from django.utils.datetime_safe import datetime
 from jwcrypto import jwk, jwt
 from jwcrypto.common import json_decode
 
-from xauth.utils.settings import *
+from xauth.utils.settings import *  # noqa
 
 # JWT_SIG_ALG = 'HS256'
-JWT_SIG_ALG = 'RS256'
+JWT_SIG_ALG = "RS256"
 
 
 class TokenKey:
@@ -16,17 +16,20 @@ class TokenKey:
     :param password: for wrapping the private signing and encryption key(s) generated during `.pem` file creation
     :param signing_algorithm: signing algorithm. Can either be 'RS256' or 'HS256'
     """
-    ALLOWED_SIGNING_ALGORITHMS = ['RS256', 'HS256']
+
+    ALLOWED_SIGNING_ALGORITHMS = ["RS256", "HS256"]
 
     # Create a folder in the root directory of the project to hold generated keys
     # This directory should not be committed to version control
-    KEYS_ROOT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace('/xauth', ''),
-                                  'xauth-secrets')
+    KEYS_ROOT_PATH = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace("/xauth", ""), "xauth-secrets"
+    )
 
     def __init__(self, password=settings.SECRET_KEY, signing_algorithm=JWT_SIG_ALG):
         self.password = password.encode()
-        assert (signing_algorithm in self.ALLOWED_SIGNING_ALGORITHMS), \
-            f'{signing_algorithm} must be in {self.ALLOWED_SIGNING_ALGORITHMS}'
+        assert (
+            signing_algorithm in self.ALLOWED_SIGNING_ALGORITHMS
+        ), f"{signing_algorithm} must be in {self.ALLOWED_SIGNING_ALGORITHMS}"
         self.signing_algorithm = signing_algorithm
 
     @property
@@ -49,7 +52,7 @@ class TokenKey:
         :return: `JWK` key or `tuple` of `JWKs` keys
         """
 
-        if self.signing_algorithm == 'HS256':
+        if self.signing_algorithm == "HS256":
             # Default signing algorithm used when all else fails
             # `JWT` signing key
             jwt_sig_key = self._get_default_signing_key()
@@ -76,7 +79,7 @@ class TokenKey:
         """
 
         file_name, path, key = self._get_signing_or_encryption_key_or_path(private, encryption)
-        file = os.path.join(path, f'{file_name}_{datetime.now().year}.pem')
+        file = os.path.join(path, f"{file_name}_{datetime.now().year}.pem")
 
         try:
             self._make_dirs_if_not_exist(path)
@@ -90,26 +93,26 @@ class TokenKey:
 
     def _get_signing_or_encryption_key_or_path(self, private: bool, encryption: bool):
         path = self.KEYS_ROOT_PATH
-        file_name = 'key'
+        file_name = "key"
         if encryption:
-            path += '/enc'  # `Encryption` keys directory
-            key = jwk.JWK.generate(kty='EC', alg='ECDH-ES', crv='P-256')
+            path += "/enc"  # `Encryption` keys directory
+            key = jwk.JWK.generate(kty="EC", alg="ECDH-ES", crv="P-256")
         else:
-            path += '/sig'  # `Signing` keys directory
+            path += "/sig"  # `Signing` keys directory
             file_name, key_op = self._get_key_op_and_filename_suffix(file_name, private)
-            key = jwk.JWK.generate(kty='RSA', key_ops=key_op, alg='RSA-OAEP', size=2048)
+            key = jwk.JWK.generate(kty="RSA", key_ops=key_op, alg="RSA-OAEP", size=2048)
         return file_name, path, key
 
     @staticmethod
     def _get_key_op_and_filename_suffix(file_name, private):
         if private:
             # `Private Key` will be used for `signing` the `token`
-            op = 'sign'
-            file_name += '_pri'  # `private` signing key `file name`
+            op = "sign"
+            file_name += "_pri"  # `private` signing key `file name`
         else:
             # `Public Key` will be used for `verifying` the `token`
-            op = 'verify'
-            file_name += '_pub'  # `public` signing key `file name`
+            op = "verify"
+            file_name += "_pub"  # `public` signing key `file name`
         return file_name, op
 
     @staticmethod
@@ -124,16 +127,16 @@ class TokenKey:
         """
         try:
             self._make_dirs_if_not_exist(self.KEYS_ROOT_PATH)
-            with open(f'{self.KEYS_ROOT_PATH}/signing_key.txt', 'rb') as file:
+            with open(f"{self.KEYS_ROOT_PATH}/signing_key.txt", "rb") as file:
                 return jwk.JWK(**json_decode(file.readline()))
         except FileNotFoundError:
-            key = jwk.JWK(generate='oct', size=256)
-            with open(f'{self.KEYS_ROOT_PATH}/signing_key.txt', 'wb') as file:
+            key = jwk.JWK(generate="oct", size=256)
+            with open(f"{self.KEYS_ROOT_PATH}/signing_key.txt", "wb") as file:
                 file.write(key.export().encode())
             return key
 
     def _create_pem_file(self, file, key, private) -> jwk.JWK:
-        with open(file, 'wb') as pem:
+        with open(file, "wb") as pem:
             # Write the key's to .pem file
             pem.write(key.export_to_pem(private_key=private, password=self.__password(private)))
         return self._get_key_from_pem(file, private)
@@ -161,12 +164,19 @@ class Token(TokenKey):
     :param payload_key key for `payload` during claims generations
     """
 
-    def __init__(self, payload, activation_date: datetime = None, expiry_period: timedelta = None,
-                 payload_key: str = 'payload', signing_algorithm=JWT_SIG_ALG, subject=None, ):
+    def __init__(
+        self,
+        payload,
+        activation_date: datetime = None,
+        expiry_period: timedelta = None,
+        payload_key: str = "payload",
+        signing_algorithm=JWT_SIG_ALG,
+        subject=None,
+    ):
         super().__init__(password=TOKEN_KEY, signing_algorithm=signing_algorithm)
         self._normal = None
         self._encrypted = None
-        self.subject = subject if subject else 'access'
+        self.subject = subject if subject else "access"
         self.payload = payload
         self.payload_key = payload_key
         self.activation_date = activation_date
@@ -207,14 +217,14 @@ class Token(TokenKey):
         self.expiry_period = TOKEN_EXPIRY if self.expiry_period is None else self.expiry_period
 
         expiry_date = self.activation_date + self.expiry_period
-        activation_secs = int(self.activation_date.strftime('%s'))
-        expiry_secs = int(expiry_date.strftime('%s'))
-        assert (expiry_secs > activation_secs), 'Expiration date must be a date later than activation date'
+        activation_secs = int(self.activation_date.strftime("%s"))
+        expiry_secs = int(expiry_date.strftime("%s"))
+        assert expiry_secs > activation_secs, "Expiration date must be a date later than activation date"
         return {
-            'nbf': activation_secs,
-            'exp': expiry_secs,
-            'iat': int(issue_date.strftime('%s')),
-            'sub': self.subject,
+            "nbf": activation_secs,
+            "exp": expiry_secs,
+            "iat": int(issue_date.strftime("%s")),
+            "sub": self.subject,
         }
 
     @property
@@ -238,7 +248,7 @@ class Token(TokenKey):
         token = self.encrypted if not token else token
         assert token is not None, "Call refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
-        tk = jwt.JWT(key=self.encryption_key, jwt=u"%s" % token).claims if encrypted else token
+        tk = jwt.JWT(key=self.encryption_key, jwt="%s" % token).claims if encrypted else token
         claims = jwt.JWT(key=self.public_signing_key, jwt=tk).claims
         return json.loads(claims)
 
@@ -250,17 +260,18 @@ class Token(TokenKey):
 
     def refresh(self):
         header = {
-            'alg': self.signing_algorithm,
-            'typ': 'JWT',
+            "alg": self.signing_algorithm,
+            "typ": "JWT",
         }
         # normal(unencrypted) token
-        token = jwt.JWT(header=header, claims=self.claims, check_claims=self.checked_claims,
-                        algs=self.ALLOWED_SIGNING_ALGORITHMS)
+        token = jwt.JWT(
+            header=header, claims=self.claims, check_claims=self.checked_claims, algs=self.ALLOWED_SIGNING_ALGORITHMS
+        )
         token.make_signed_token(key=self.private_signing_key)
         self._normal = token.serialize()
         header = {
-            'alg': "ECDH-ES",
-            'enc': "A256GCM",
+            "alg": "ECDH-ES",
+            "enc": "A256GCM",
         }
         # header = XAUTH.get('JWT_ENC_HEADERS', {
         #     "alg": "A256KW",

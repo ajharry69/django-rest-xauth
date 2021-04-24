@@ -8,14 +8,21 @@ from xauth.serializers import AuthTokenOnlySerializer
 
 
 class VerificationRequestView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
     serializer_class = AuthTokenOnlySerializer
 
     def post(self, request, format=None):
         user = request.user
         # new verification code resend or request is been made
         token, code = user.request_verification(send_mail=True)
-        return Response(data=self.serializer_class(user, ).data, status=status.HTTP_200_OK, )
+        return Response(
+            data=self.serializer_class(
+                user,
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class VerificationConfirmView(VerificationRequestView):
@@ -32,17 +39,25 @@ class VerificationConfirmView(VerificationRequestView):
     """
 
     def post(self, request, format=None):
-        user, operation = request.user, request.query_params.get('operation', 'confirm').lower()
-        if re.match('^(re(send|quest)|send)$', operation):
+        user, operation = request.user, request.query_params.get("operation", "confirm").lower()
+        if re.match("^(re(send|quest)|send)$", operation):
             # new verification code resend or request is been made
             return super(VerificationConfirmView, self).post(request, format)
         else:
             # verify provided code
-            code = request.data.get('code', None)
+            code = request.data.get("code", None)
             token, message = user.verify(code=code)
             if token is not None:
                 # verification was successful
-                data, status_code = self.serializer_class(user, ).data, None
+                data, status_code = (
+                    self.serializer_class(
+                        user,
+                    ).data,
+                    None,
+                )
             else:
-                data, status_code = {'error': message}, status.HTTP_400_BAD_REQUEST
-        return Response(data=data, status=status_code or status.HTTP_200_OK, )
+                data, status_code = {"error": message}, status.HTTP_400_BAD_REQUEST
+        return Response(
+            data=data,
+            status=status_code or status.HTTP_200_OK,
+        )

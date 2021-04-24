@@ -7,4 +7,4 @@ def on_post_migrate(sender, **kwargs):
     default_security_question()
 
 
-post_migrate.connect(on_post_migrate, dispatch_uid='1')
+post_migrate.connect(on_post_migrate, dispatch_uid="1")

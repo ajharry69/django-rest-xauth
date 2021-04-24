@@ -1,8 +1,6 @@
 import importlib
 import re
 
-from xauth.utils.settings import XAUTH
-
 
 def is_valid_str(string, length: int = 1) -> bool:
     """
@@ -17,11 +15,11 @@ def is_valid_str(string, length: int = 1) -> bool:
 
 def reset_empty_nullable_to_null(obj, fields):
     """
-    Reset '' in named attributes contained in `fields` to None otherwise the provided 
+    Reset '' in named attributes contained in `fields` to None otherwise the provided
     value is retained
-    
+
     :param obj: object(class instance) containing attributes in `field`
-    :param fields: an iterable(list/tuple) of string names of attributes contained in 
+    :param fields: an iterable(list/tuple) of string names of attributes contained in
     `self`
     """
     for f in fields:
@@ -34,11 +32,11 @@ def is_http_response_success(status_code: int) -> bool:
     """
     :returns `True` if `status_code` is a 3-digit number starting with 2 and `False` otherwise
     """
-    return re.match(r'^2\d{2}$', str(status_code)) is not None
+    return re.match(r"^2\d{2}$", str(status_code)) is not None
 
 
 def get_unique_identifier(obj):
-    return f'{obj.__module__}.{obj.__name__}.{obj.__qualname__}.{repr(obj)}' if obj else None
+    return f"{obj.__module__}.{obj.__name__}.{obj.__qualname__}.{repr(obj)}" if obj else None
 
 
 def get_class(module_class_name: str, default=None):
@@ -48,7 +46,7 @@ def get_class(module_class_name: str, default=None):
     class_name = default
     try:
         if is_valid_str(module_class_name):
-            module_name, class_name = module_class_name.rsplit('.', 1)
+            module_name, class_name = module_class_name.rsplit(".", 1)
             class_name = getattr(importlib.import_module(module_name), class_name, default)
     except (AttributeError, ValueError, ModuleNotFoundError):
         pass

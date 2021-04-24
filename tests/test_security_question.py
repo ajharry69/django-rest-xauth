@@ -1,8 +1,7 @@
-from tests import *
+from tests import *  # noqa
 
 
 class SecurityQuestionTestCase(APITestCase):
-
     def setUp(self) -> None:
         self.security_question = create_security_question()
 

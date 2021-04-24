@@ -40,19 +40,19 @@ if sys.argv[-1] == "publish":
         print("twine check failed. Packages might be outdated.")
         print("Try using `pip install -U twine wheel`.\nExiting.")
         sys.exit()
-    if re.match('^-([t]|-test)$', sys.argv[-2]):
+    if re.match("^-([t]|-test)$", sys.argv[-2]):
         # uploads test package
-        os.system('twine upload --repository testpypi dist/*')
+        os.system("twine upload --repository testpypi dist/*")
     else:
         # uploads production package
         os.system("twine upload dist/*")
     print("You probably want to also tag the version now:")
     print(" git tag -a {0} -m 'version {0}'".format(version))
     print(" git push --tags")
-    update_version('xauth')
-    shutil.rmtree('dist')
-    shutil.rmtree('build')
-    shutil.rmtree('django_rest_xauth.egg-info')
+    update_version("xauth")
+    shutil.rmtree("dist")
+    shutil.rmtree("build")
+    shutil.rmtree("django_rest_xauth.egg-info")
     sys.exit()
 
 setuptools.setup(
@@ -61,15 +61,22 @@ setuptools.setup(
     author="Orinda Harrison",
     author_email="mitch@xently.com",
     description="A custom user-model based package with features ranging from JWT and Basic authentication to REST API"
-                " end-points for signup, signin, email verification, password resetting and account activation.",
+    " end-points for signup, signin, email verification, password resetting and account activation.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license='MIT',
-    keywords='django django-rest-framework jwt-bearer-tokens basic-authentication encryption-decryption authorization '
-             'authentication',
+    license="MIT",
+    keywords="django django-rest-framework jwt-bearer-tokens basic-authentication encryption-decryption authorization "
+    "authentication",
     url="https://github.com/ajharry69/django-rest-xauth",
     packages=setuptools.find_packages(
-        exclude=("*.tests", "*.tests.*", "tests.*", "tests", "djangorestxauth", "demo",),
+        exclude=(
+            "*.tests",
+            "*.tests.*",
+            "tests.*",
+            "tests",
+            "djangorestxauth",
+            "demo",
+        ),
     ),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -87,16 +94,16 @@ setuptools.setup(
         "Topic :: Software Development",
         "Topic :: Internet :: WWW/HTTP",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
     install_requires=[
-        'djangorestframework',
-        'django-templated-email',
-        'jwcrypto',
-        'timeago',
+        "djangorestframework",
+        "django-templated-email",
+        "jwcrypto",
+        "timeago",
     ],
     include_package_data=True,
     zip_safe=False,
     project_urls={
-        'Source': 'https://github.com/ajharry69/django-rest-xauth',
+        "Source": "https://github.com/ajharry69/django-rest-xauth",
     },
 )

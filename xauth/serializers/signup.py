@@ -6,8 +6,10 @@ from xauth.serializers import AuthSerializer
 
 class SignUpSerializer(AuthSerializer):
     password = serializers.CharField(
-        write_only=True, allow_null=True, allow_blank=True,
-        style={'input_type': 'password'},
+        write_only=True,
+        allow_null=True,
+        allow_blank=True,
+        style={"input_type": "password"},
     )
 
     class Meta(AuthSerializer.Meta):

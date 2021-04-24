@@ -15,10 +15,11 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
     Attempts 3 different authentication methods(Bearer token, Basic, POST request) in order of listing
      before surrendering control to its succeeding Authentication backends
     """
-    auth_scheme = 'Bearer'
+
+    auth_scheme = "Bearer"
 
     def authenticate(self, request):
-        address_header_payload = request.META.get('HTTP_X_Forwarded_For', request.META.get('REMOTE_ADDR', None))
+        address_header_payload = request.META.get("HTTP_X_Forwarded_For", request.META.get("REMOTE_ADDR", None))
         request_url = str(request.build_absolute_uri()).lower()
         auth = None
         authorization_header = drf_auth.get_authorization_header(request)
@@ -43,7 +44,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         return self.__get_wrapped_authentication_response(address_header_payload, user, auth, request_url)
 
     def authenticate_header(self, request):
-        return 'Provide a Bearer-token, Basic or POST-request with username and password'
+        return "Provide a Bearer-token, Basic or POST-request with username and password"
 
     def get_user_from_jwt_token(self, token, request_url):
         """
@@ -54,30 +55,30 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         :param token: JWT token
         :return: user object
         """
-        self.auth_scheme = 'Bearer'
+        self.auth_scheme = "Bearer"
         try:
             tk = Token(None)
             claims = tk.get_claims(token=token)
             user_payload = claims.get(tk.payload_key, {})
-            user_id = user_payload.get('id', None) if isinstance(user_payload, dict) else user_payload
-            subject = claims.get('sub', 'access')
-            if settings.VERIFICATION_ENDPOINT in request_url and subject != 'verification':
-                raise jwe.JWException(f'tokens is restricted to {subject}')
-            elif settings.ACTIVATION_ENDPOINT in request_url and subject != 'activation':
-                raise jwe.JWException(f'tokens is restricted to {subject}')
-            elif settings.PASSWORD_RESET_ENDPOINT in request_url and subject != 'password-reset':
-                raise jwe.JWException(f'tokens is restricted to {subject}')
+            user_id = user_payload.get("id", None) if isinstance(user_payload, dict) else user_payload
+            subject = claims.get("sub", "access")
+            if settings.VERIFICATION_ENDPOINT in request_url and subject != "verification":
+                raise jwe.JWException(f"tokens is restricted to {subject}")
+            elif settings.ACTIVATION_ENDPOINT in request_url and subject != "activation":
+                raise jwe.JWException(f"tokens is restricted to {subject}")
+            elif settings.PASSWORD_RESET_ENDPOINT in request_url and subject != "password-reset":
+                raise jwe.JWException(f"tokens is restricted to {subject}")
             else:
                 try:
                     return get_user_model().objects.get(pk=user_id) if user_id else None
                 except get_user_model().DoesNotExist as ex:
-                    raise drf_exception.AuthenticationFailed(f'user not found#{ex.args[0]}')
+                    raise drf_exception.AuthenticationFailed(f"user not found#{ex.args[0]}")
         except jwt.JWTExpired as ex:
-            raise drf_exception.AuthenticationFailed(f'expired token#{ex.args[0]}')
+            raise drf_exception.AuthenticationFailed(f"expired token#{ex.args[0]}")
         except jwt.JWTNotYetValid as ex:
-            raise drf_exception.AuthenticationFailed(f'token not ready for use#{ex.args[0]}')
+            raise drf_exception.AuthenticationFailed(f"token not ready for use#{ex.args[0]}")
         except jwe.JWException as ex:
-            raise drf_exception.AuthenticationFailed(f'invalid token#{ex.args[0]}')
+            raise drf_exception.AuthenticationFailed(f"invalid token#{ex.args[0]}")
 
     def get_user_from_basic_or_token_auth_scheme(self, auth_scheme_and_credentials, request_url):
         """
@@ -96,10 +97,10 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         # a scheme and payload is probably present. Extract
         auth_scheme = auth_scheme_and_credentials[0].lower()  # expected to be the first
         auth_credentials = auth_scheme_and_credentials[1]  # expected to be the second
-        if re.match(r'^(bearer|token)$', auth_scheme):
+        if re.match(r"^(bearer|token)$", auth_scheme):
             # begin jwt-token based authentication
             return self.get_user_from_jwt_token(auth_credentials, request_url), auth_credentials
-        elif re.match('^basic$', auth_scheme):
+        elif re.match("^basic$", auth_scheme):
             # begin basic authentication
             username, password = self.get_basic_auth_username_and_password(auth_credentials)
             return self.get_user_with_username_and_password(username=username, password=password), None
@@ -117,23 +118,25 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         :param password: user's "raw" password
         :return: user object or None if both `username` & `password` were None or empty
         """
-        self.auth_scheme = 'Basic'
+        self.auth_scheme = "Basic"
         try:
             if is_valid_str(username) and is_valid_str(password):
                 user = get_user_model().objects.get(Q(username=username) | Q(email=username))
                 if user.check_password(raw_password=password) is False:
                     # user was found but password does not match
                     # log user's failed sign-in attempt
-                    password_change_message = user.get_last_password_change_message(locale='en')
+                    password_change_message = user.get_last_password_change_message(locale="en")
                     remaining_attempts = user.update_signin_attempts(failed=True)
-                    message = f'invalid username and/or password##{remaining_attempts}#{password_change_message}'
+                    message = f"invalid username and/or password##{remaining_attempts}#{password_change_message}"
                     raise drf_exception.AuthenticationFailed(message)
             else:
                 return None
         except get_user_model().DoesNotExist as ex:
-            raise drf_exception.AuthenticationFailed(f'user not found#{ex.args[0]}')
+            raise drf_exception.AuthenticationFailed(f"user not found#{ex.args[0]}")
         # sign-in was a success. Reset sign-in attempts to zero
-        user.update_signin_attempts(failed=False, )
+        user.update_signin_attempts(
+            failed=False,
+        )
         return user
 
     @staticmethod
@@ -145,7 +148,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         :param credentials: the Base64 encoding of ID and password joined by a single colon
         :return: tuple
         """
-        return tuple(base64.b64decode(credentials, validate=True).decode().split(':'))
+        return tuple(base64.b64decode(credentials, validate=True).decode().split(":"))
 
     @staticmethod
     def get_post_request_username_and_password(request):
@@ -179,7 +182,7 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         """
         if addresses_str:
             # addresses where provided, trim off spaces or double
-            ip_addresses = re.sub(r'^,+|\s+,*|,+$', '', addresses_str).split(',')
+            ip_addresses = re.sub(r"^,+|\s+,*|,+$", "", addresses_str).split(",")
             return ip_addresses[0] if len(ip_addresses) > 0 else ip_addresses
         return None
 
@@ -189,4 +192,4 @@ class BasicTokenAuthentication(drf_auth.BaseAuthentication):
         if user.is_active or settings.ACTIVATION_ENDPOINT in request_url:
             user.device_ip = self.get_client_ip(addresses_str)
             return user, auth
-        raise drf_exception.AuthenticationFailed('account was deactivated')
+        raise drf_exception.AuthenticationFailed("account was deactivated")

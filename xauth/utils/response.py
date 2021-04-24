@@ -1,5 +1,4 @@
 class ErrorResponse:
-
     def __init__(self, error=None, **kwargs):
         self.error = error
         for k, v in kwargs.items():

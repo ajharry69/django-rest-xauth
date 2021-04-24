@@ -1,5 +1,5 @@
 from xauth.apps.account.tasks import send_mail_async
-from .settings import *
+from .settings import *  # noqa
 
 
 class Mail:
@@ -10,8 +10,9 @@ class Mail:
         :param reply_to: email address(es) to send mail base_response to
         """
 
-        def __init__(self, recipients=None, sender: str = ACCOUNTS_EMAIL,
-                     reply_to: list = REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES):
+        def __init__(
+            self, recipients=None, sender: str = ACCOUNTS_EMAIL, reply_to: list = REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES
+        ):
             __is_not_iterable = not isinstance(recipients, tuple) or not isinstance(recipients, list)
             self.recipients = [recipients] if __is_not_iterable else recipients
             self.sender = sender

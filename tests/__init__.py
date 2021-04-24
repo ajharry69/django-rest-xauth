@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from xauth.apps.account.models import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
-from xauth.utils.settings import *
+from xauth.utils.settings import *  # noqa
 
 
 def get_response_data_payload(response):
@@ -17,25 +17,26 @@ def get_response_data_payload_with_key(response, data_key: str):
 
 def get_response_data_message(response):
     data = response.data
-    return data.get('message') or data.get('success') or data.get('error')
+    return data.get("message") or data.get("success") or data.get("error")
 
 
 def get_response_data_debug_message(response):
     data = response.data
-    return data.get('debug_message', None)
+    return data.get("debug_message", None)
 
 
 def get_response_data_metadata(response):
     data = response.data
-    return data.get('metadata', None)
+    return data.get("metadata", None)
 
 
 def create_user(username):
-    return get_user_model().objects.create_user(username=username, email=f'{username}@mail-domain.com')
+    return get_user_model().objects.create_user(username=username, email=f"{username}@mail-domain.com")
 
 
-def update_metadata(user, sec_quest=None, sec_ans=None, tpass=None, vcode=None, tp_gen: timedelta = None,
-                    vc_gen: timedelta = None):
+def update_metadata(
+    user, sec_quest=None, sec_ans=None, tpass=None, vcode=None, tp_gen: timedelta = None, vc_gen: timedelta = None
+):
     meta, created = Metadata.objects.get_or_create(user=user)
     if sec_quest:
         meta.security_question = sec_quest
@@ -50,7 +51,7 @@ def update_metadata(user, sec_quest=None, sec_ans=None, tpass=None, vcode=None, 
     return meta
 
 
-def create_security_question(question: str = 'What is your favourite color?', usable: bool = True):
+def create_security_question(question: str = "What is your favourite color?", usable: bool = True):
     return SecurityQuestion.objects.create(question=question, usable=usable)
 
 
@@ -89,11 +90,11 @@ def create_password_reset_log(user, change_times: list):
 
 
 class UserAPITestCase(APITestCase):
-    old_first_name, old_last_name = 'John', 'Doe'
-    new_first_name, new_last_name = 'Stephenson', 'Doug'
-    username, email, password = 'user', 'user@mail-domain.com', 'password'
-    username_1, email_1, password_1 = 'user1', 'user1@mail-domain.com', 'password'
-    superuser_username, superuser_email, superuser_password = 'admin', 'admin@mail-domain.com', 'pV55M0r6'
+    old_first_name, old_last_name = "John", "Doe"
+    new_first_name, new_last_name = "Stephenson", "Doug"
+    username, email, password = "user", "user@mail-domain.com", "password"
+    username_1, email_1, password_1 = "user1", "user1@mail-domain.com", "password"
+    superuser_username, superuser_email, superuser_password = "admin", "admin@mail-domain.com", "pV55M0r6"
 
     def setUp(self) -> None:
         self.superuser = get_user_model().objects.create_superuser(
@@ -116,15 +117,17 @@ class UserAPITestCase(APITestCase):
 
 
 class ChangeConfirmationAPITestCase(UserAPITestCase):
-
     def code_password_verification(self, response, token):
         from django.utils.datetime_safe import datetime
 
         user = get_user_model().objects.get_by_natural_key(self.user.username)
         user.is_verified = True
-        encrypted_token = get_response_data_payload_with_key(response, 'encrypted')
-        token_expiry = token.get_claims(encrypted_token, encrypted=True, ).get('exp', 0)
-        token_expiry_days = int((token_expiry - int(datetime.now().strftime('%s'))) / (60 * 60 * 24))
+        encrypted_token = get_response_data_payload_with_key(response, "encrypted")
+        token_expiry = token.get_claims(
+            encrypted_token,
+            encrypted=True,
+        ).get("exp", 0)
+        token_expiry_days = int((token_expiry - int(datetime.now().strftime("%s"))) / (60 * 60 * 24))
         return token_expiry_days, user
 
 

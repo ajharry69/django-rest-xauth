@@ -10,7 +10,9 @@ class _BaseAPIView(views.APIView):
     serializer_class = None
     # does normal operations of `serializer_class` would it not have been used to provide data
     serializer_class_response = None
-    permission_classes = [permissions.AllowAny, ]
+    permission_classes = [
+        permissions.AllowAny,
+    ]
 
     def process_request(self, request, success_status_code: int = status.HTTP_200_OK, instance=None):
         try:
@@ -20,7 +22,7 @@ class _BaseAPIView(views.APIView):
                 instance=instance,
                 data=request_data,
                 many=self.many,
-                context={'request': request},
+                context={"request": request},
             )
             if serializer.is_valid():
                 self.on_valid_response_serializer(serializer)
@@ -39,10 +41,14 @@ class _BaseAPIView(views.APIView):
                 # let response serializer handle default request data if they are of same type
                 raise Exception("serializers are of same type")
             serializer_class = self.serializer_class or self.serializer_class_response
-            serializer = serializer_class(
-                data=request_data,
-                context={'request': request},
-            ) if serializer_class else None
+            serializer = (
+                serializer_class(
+                    data=request_data,
+                    context={"request": request},
+                )
+                if serializer_class
+                else None
+            )
             if serializer and serializer.is_valid(True):
                 request_data = self.on_valid_request_serializer(serializer) or request_data
         except Exception:
@@ -67,6 +73,7 @@ class _BaseAPIView(views.APIView):
 class CreateAPIView(_BaseAPIView):
     def post(self, request, format=None):
         return self.process_request(request, status.HTTP_201_CREATED)
+
 
 # class RetrieveManyAPIView(_BaseAPIView):
 #     many = True
