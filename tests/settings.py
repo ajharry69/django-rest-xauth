@@ -9,7 +9,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "demo.apps.DemoConfig",
+    "xauth.apps.accounts.apps.AppConfig",
     "xauth.apps.AppConfig",
     "rest_framework",
 ]
@@ -63,7 +63,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ROOT_URLCONF = "djangorestxauth.urls"
+ROOT_URLCONF = "xauth.urls"
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
