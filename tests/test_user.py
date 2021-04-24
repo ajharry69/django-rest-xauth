@@ -2,7 +2,7 @@ from django.test import override_settings
 from django.utils.datetime_safe import datetime
 
 from xauth.models import User
-from xauth.tests import *
+from tests import *
 from xauth.utils import enums
 from xauth.utils.settings import DATE_INPUT_FORMAT
 

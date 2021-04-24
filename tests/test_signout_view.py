@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from xauth.models import AccessLog
-from xauth.tests import *
+from tests import *
 
 
 class SignOutViewTestCase(UserAPITestCase):

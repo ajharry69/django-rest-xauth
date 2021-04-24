@@ -2,7 +2,7 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from xauth.tests import *
+from tests import *
 
 
 @override_settings(XAUTH={'WRAP_DRF_RESPONSE': True, }, )

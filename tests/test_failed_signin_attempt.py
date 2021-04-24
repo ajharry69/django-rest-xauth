@@ -1,6 +1,6 @@
 from django.test.utils import override_settings
 
-from xauth.tests import *
+from tests import *
 
 
 class FailedSignInAttemptTestCase(UserAPITestCase):

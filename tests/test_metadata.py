@@ -1,4 +1,4 @@
-from xauth.tests import *
+from tests import *
 
 
 class MetadataTestCase(APITestCase):
