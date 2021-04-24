@@ -1,5 +1,5 @@
 # Settings
-You can customize the `django-rest-xauth` default behaviour by providing `XAUTH` setting in your django project's 
+You can customize the `django-rest-xauth` default behaviour by providing `XAUTH` setting in your django project's
 `settings.py` file like below.
 
 ```python
@@ -48,8 +48,8 @@ XAUTH = {
 
 **Usage**: period within which an account verification code and token(verification) should be considered valid.
 
-**Note:** if you have `xauth.authentication.BasicTokenAuthentication` as the first option in `REST_FRAMEWORK`'s 
-`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than account verification 
+**Note:** if you have `xauth.authentication.JWTTokenAuthentication` as the first option in `REST_FRAMEWORK`'s
+`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than account verification
 through the endpoint provided by `VERIFICATION_ENDPOINT` in `XAUTH` settings.
 
 ## TEMPORARY_PASSWORD_EXPIRY
@@ -59,9 +59,9 @@ through the endpoint provided by `VERIFICATION_ENDPOINT` in `XAUTH` settings.
 
 **Usage**: period within which a password-reset temporary password and token(generated when password reset is requested)
  should be considered valid.
- 
-**Note:** if you have `xauth.authentication.BasicTokenAuthentication` as the first option in `REST_FRAMEWORK`'s 
-`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than password-reset through the 
+
+**Note:** if you have `xauth.authentication.JWTTokenAuthentication` as the first option in `REST_FRAMEWORK`'s
+`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than password-reset through the
 endpoint provided by `PASSWORD_RESET_ENDPOINT` in `XAUTH` settings.
 
 ## ACCOUNT_ACTIVATION_TOKEN_EXPIRY
@@ -69,11 +69,11 @@ endpoint provided by `PASSWORD_RESET_ENDPOINT` in `XAUTH` settings.
 
 **Default**: `timedelta(days=1)`
 
-**Usage**: period within which an account activation token(generated when account activation is requested after 
+**Usage**: period within which an account activation token(generated when account activation is requested after
 deactivation) should be considered valid.
 
-**Note:** if you have `xauth.authentication.BasicTokenAuthentication` as the first option in `REST_FRAMEWORK`'s 
-`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than 
+**Note:** if you have `xauth.authentication.JWTTokenAuthentication` as the first option in `REST_FRAMEWORK`'s
+`DEFAULT_AUTHENTICATION_CLASSES` in your settings, this token will not be usable for any other purpose other than
 account activation through the endpoint provided by `ACTIVATION_ENDPOINT` in `XAUTH` settings.
 
 ## REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES
@@ -81,7 +81,7 @@ account activation through the endpoint provided by `ACTIVATION_ENDPOINT` in `XA
 
 **Default**: `[ settings.EMAIL_HOST_USER, ]`. `settings` is from `django.conf.setting` module
 
-**Usage**: email address(es) to which replies of emails sent(account verification and password reset) to users through 
+**Usage**: email address(es) to which replies of emails sent(account verification and password reset) to users through
 the `django-rest-xauth` should be channelled.
 
 ## ACCOUNTS_EMAIL
@@ -124,7 +124,7 @@ the `django-rest-xauth` should be channelled.
 
 **Default**: `password`
 
-**Usage**: used to retrieve `password` from a POST request sign-in/login. 
+**Usage**: used to retrieve `password` from a POST request sign-in/login.
 
 ## ENFORCE_ACCOUNT_VERIFICATION
 **Type**: `bool`
@@ -138,13 +138,13 @@ the `django-rest-xauth` should be channelled.
 
 **Default**: `0`
 
-**Usage**: attempts upon which account is to be deactivated after failed sign-in attempts is reached. Value of `0` or 
+**Usage**: attempts upon which account is to be deactivated after failed sign-in attempts is reached. Value of `0` or
 less means no limit should be enforced hence no account deactivation due to sign-in attempts limit.
 
 ## USER_LOOKUP_FIELD
 **Type**: `str`
 
-**Default**: `pk`. Should be one of `xauth.models.User` **unique** [fields][user-model-fields-url] e.g. 'pk', 'id', 
+**Default**: `pk`. Should be one of `xauth.models.User` **unique** [fields][user-model-fields-url] e.g. 'pk', 'id',
 'username' e.t.c
 
 **Usage**: used together with [PROFILE_ENDPOINT][profile-endpoint-setting-url] setting to build up a single user profile
@@ -163,7 +163,7 @@ hence a change to either setting would require a change on the other as they are
 
 **Default**: `verification/confirm/`
 
-**Usage**: used to create a url through which account verification code should be verified/validated for correctness 
+**Usage**: used to create a url through which account verification code should be verified/validated for correctness
 before account is considered verified.
 
 ## PASSWORD_RESET_ENDPOINT
@@ -171,7 +171,7 @@ before account is considered verified.
 
 **Default**: `password/reset/confirm/`
 
-**Usage**: used to create a url through which password-reset temporary password should be verified/validated for 
+**Usage**: used to create a url through which password-reset temporary password should be verified/validated for
 correctness before user's password is changed to a new one(provided through a **POST** request in the same url).
 
 ## ACTIVATION_ENDPOINT
@@ -179,7 +179,7 @@ correctness before user's password is changed to a new one(provided through a **
 
 **Default**: `activation/confirm/`
 
-**Usage**: used to create a url through which user's security question's answer will be verified/validated for 
+**Usage**: used to create a url through which user's security question's answer will be verified/validated for
 correctness before account is considered activated.
 
 ## EMAIL_TEMPLATES_DIRECTORY

@@ -22,7 +22,7 @@ DEBUG = True
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "xauth.authentication.BasicTokenAuthentication",
+        "xauth.authentication.JWTTokenAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
