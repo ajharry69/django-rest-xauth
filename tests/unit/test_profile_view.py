@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from tests import *  # noqa
+from tests.testcases import *  # noqa
 from xauth.utils import is_http_response_success
 
 

@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from xauth.apps.account.models import AccessLog
-from tests import *  # noqa
+from xauth.apps.accounts.models import AccessLog
+from tests.testcases import *  # noqa
 
 
 class SignOutViewTestCase(UserAPITestCase):

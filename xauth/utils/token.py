@@ -7,6 +7,8 @@ from jwcrypto.common import json_decode
 
 from xauth.utils.settings import *  # noqa
 
+__all__ = ["JWT_SIG_ALG", "TokenKey", "Token"]
+
 # JWT_SIG_ALG = 'HS256'
 JWT_SIG_ALG = "RS256"
 

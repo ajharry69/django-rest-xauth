@@ -1,4 +1,4 @@
-from tests import *  # noqa
+from tests.testcases import *  # noqa
 
 
 class MetadataTestCase(APITestCase):

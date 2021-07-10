@@ -4,7 +4,7 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import xauth.apps.account.models
+import xauth.apps.accounts.models
 
 
 class Migration(migrations.Migration):
@@ -168,7 +168,7 @@ class Migration(migrations.Migration):
                 (
                     "security_question",
                     models.ForeignKey(
-                        default=xauth.apps.account.models.default_security_question,
+                        default=xauth.apps.accounts.models.default_security_question,
                         on_delete=django.db.models.deletion.SET_DEFAULT,
                         to="xauth.SecurityQuestion",
                     ),

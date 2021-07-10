@@ -74,7 +74,7 @@ setuptools.setup(
             "*.tests.*",
             "tests.*",
             "tests",
-            "djangorestxauth",
+            "demo",
             "demo",
         ),
     ),

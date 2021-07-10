@@ -1,6 +1,6 @@
 from django.test.utils import override_settings
 
-from tests import *  # noqa
+from tests.testcases import *  # noqa
 
 
 class FailedSignInAttemptTestCase(UserAPITestCase):

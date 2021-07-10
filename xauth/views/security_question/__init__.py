@@ -3,7 +3,7 @@ from rest_framework import views, status
 from rest_framework.response import Response
 
 from xauth import permissions
-from xauth.apps.account.models import SecurityQuestion
+from xauth.apps.accounts.models import SecurityQuestion
 from xauth.utils import is_valid_str
 
 

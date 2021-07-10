@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from tests import *  # noqa
+from tests.testcases import *  # noqa
 
 
 class PasswordResetRequestViewTestCase(UserAPITestCase):

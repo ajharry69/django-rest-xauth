@@ -1,4 +1,4 @@
-from xauth.apps.account.tasks import send_mail_async
+from xauth.apps.accounts.tasks import send_mail_async
 from .settings import *  # noqa
 
 
