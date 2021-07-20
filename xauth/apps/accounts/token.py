@@ -1,11 +1,13 @@
 import json
 import os
+from datetime import timedelta
 
+from django.conf import settings
 from django.utils.datetime_safe import datetime
 from jwcrypto import jwk, jwt
 from jwcrypto.common import json_decode
 
-from xauth.utils.settings import *  # noqa
+from xauth.internal_settings import *  # noqa
 
 __all__ = ["JWT_SIG_ALG", "TokenKey", "Token"]
 
@@ -23,15 +25,13 @@ class TokenKey:
 
     # Create a folder in the root directory of the project to hold generated keys
     # This directory should not be committed to version control
-    KEYS_ROOT_PATH = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace("/xauth", ""), "xauth-secrets"
-    )
+    KEYS_ROOT_PATH = getattr(settings, "XAUTH_KEYS_DIR", settings.BASE_DIR)
 
     def __init__(self, password=settings.SECRET_KEY, signing_algorithm=JWT_SIG_ALG):
         self.password = password.encode()
         assert (
-            signing_algorithm in self.ALLOWED_SIGNING_ALGORITHMS
-        ), f"{signing_algorithm} must be in {self.ALLOWED_SIGNING_ALGORITHMS}"
+            signing_algorithm in self.__class__.ALLOWED_SIGNING_ALGORITHMS
+        ), f"{signing_algorithm} must be one of {self.__class__.ALLOWED_SIGNING_ALGORITHMS}"
         self.signing_algorithm = signing_algorithm
 
     @property
@@ -129,18 +129,18 @@ class TokenKey:
         """
         try:
             self._make_dirs_if_not_exist(self.KEYS_ROOT_PATH)
-            with open(f"{self.KEYS_ROOT_PATH}/signing_key.txt", "rb") as file:
+            with open(f"{self.KEYS_ROOT_PATH}/signing_key", "rb") as file:
                 return jwk.JWK(**json_decode(file.readline()))
         except FileNotFoundError:
             key = jwk.JWK(generate="oct", size=256)
-            with open(f"{self.KEYS_ROOT_PATH}/signing_key.txt", "wb") as file:
+            with open(f"{self.KEYS_ROOT_PATH}/signing_key", "wb") as file:
                 file.write(key.export().encode())
             return key
 
     def _create_pem_file(self, file, key, private) -> jwk.JWK:
         with open(file, "wb") as pem:
             # Write the key's to .pem file
-            pem.write(key.export_to_pem(private_key=private, password=self.__password(private)))
+            pem.write(key.export_to_pem(private_key=private, password=self.password if private else None))
         return self._get_key_from_pem(file, private)
 
     def _get_key_from_pem(self, file, private) -> jwk.JWK:
@@ -150,10 +150,7 @@ class TokenKey:
         :return: jwk.JWK
         """
         with open(file, "rb") as pem:
-            return jwk.JWK.from_pem(pem.read(), password=self.__password(private))
-
-    def __password(self, private):
-        return self.password if private else None
+            return jwk.JWK.from_pem(pem.read(), password=self.password if private else None)
 
 
 class Token(TokenKey):
@@ -175,7 +172,7 @@ class Token(TokenKey):
         signing_algorithm=JWT_SIG_ALG,
         subject=None,
     ):
-        super().__init__(password=TOKEN_KEY, signing_algorithm=signing_algorithm)
+        super().__init__(signing_algorithm=signing_algorithm)
         self._normal = None
         self._encrypted = None
         self.subject = subject if subject else "access"
@@ -183,10 +180,6 @@ class Token(TokenKey):
         self.payload_key = payload_key
         self.activation_date = activation_date
         self.expiry_period = expiry_period
-
-    def __str__(self):
-        # self.__repr__() # makes sure
-        return json.dumps(self.__dict__)
 
     def __repr__(self):
         return json.dumps(self.tokens)
@@ -244,15 +237,14 @@ class Token(TokenKey):
     def tokens(self):
         if not self.normal or not self.encrypted:
             self.refresh()
-        return dict(normal=self.normal, encrypted=self.encrypted)
+        return {"normal": self.normal, "encrypted": self.encrypted}
 
     def get_claims(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         token = self.encrypted if not token else token
-        assert token is not None, "Call refresh() first or provide a token"
+        assert token is not None, "Call .refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
-        tk = jwt.JWT(key=self.encryption_key, jwt="%s" % token).claims if encrypted else token
-        claims = jwt.JWT(key=self.public_signing_key, jwt=tk).claims
-        return json.loads(claims)
+        token = jwt.JWT(key=self.encryption_key, jwt=f"{token}").claims if encrypted else token
+        return json.loads(jwt.JWT(key=self.public_signing_key, jwt=token).claims)
 
     def get_payload(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         try:
@@ -261,24 +253,15 @@ class Token(TokenKey):
             return self.payload
 
     def refresh(self):
-        header = {
-            "alg": self.signing_algorithm,
-            "typ": "JWT",
-        }
+        header = {"alg": self.signing_algorithm, "typ": "JWT"}
         # normal(unencrypted) token
         token = jwt.JWT(
             header=header, claims=self.claims, check_claims=self.checked_claims, algs=self.ALLOWED_SIGNING_ALGORITHMS
         )
         token.make_signed_token(key=self.private_signing_key)
         self._normal = token.serialize()
-        header = {
-            "alg": "ECDH-ES",
-            "enc": "A256GCM",
-        }
-        # header = XAUTH.get('JWT_ENC_HEADERS', {
-        #     "alg": "A256KW",
-        #     "enc": "A256CBC-HS512",
-        # })
+        header = {"alg": "ECDH-ES", "enc": "A256GCM"}
+        # header = XAUTH.get('JWT_ENC_HEADERS', {"alg": "A256KW", "enc": "A256CBC-HS512"})
         # encrypted token
         e_token = jwt.JWT(header=header, claims=self.normal)
         e_token.make_encrypted_token(key=self.encryption_key)

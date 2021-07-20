@@ -1,30 +1,63 @@
 import re
 
 from django.contrib.auth import get_user_model
-from django.utils.functional import cached_property
+from django.urls.exceptions import Resolver404, NoReverseMatch
 from ipware import get_client_ip
 from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
 
-from xauth.utils import is_valid_str, settings
-from xauth.utils.token import Token
+from xauth.apps.accounts.token import Token
+from xauth.apps.accounts.views import AccountViewSet
+from xauth.utils import is_valid_str
 
 __all__ = ["JWTTokenAuthentication"]
+
+
+# VERIFICATION_ENDPOINT = reverse("")
+# ACTIVATION_ENDPOINT = reverse("")
+# PASSWORD_RESET_ENDPOINT = reverse("")
 
 
 class BaseAuthentication(authentication.BaseAuthentication):
     request = None
     auth_scheme = None
 
-    @cached_property
+    @property
     def request_url_in_lowercase(self):
         return str(self.request.build_absolute_uri()).lower()
 
     def authenticate(self, request):
         self.request = request
 
+    @property
+    def _is_verification_endpoint(self):
+        view = AccountViewSet(request=self.request)
+        try:
+            endpoint = view.reverse_action(view.verify_account.url_name, kwargs=view.request.resolver_match.kwargs)
+        except (Resolver404, NoReverseMatch):
+            return False
+        return endpoint == self.request_url_in_lowercase
+
+    @property
+    def _is_activation_endpoint(self):
+        view = AccountViewSet(request=self.request)
+        try:
+            endpoint = view.reverse_action(view.activate_account.url_name, kwargs=view.request.resolver_match.kwargs)
+        except (Resolver404, NoReverseMatch):
+            return False
+        return endpoint == self.request_url_in_lowercase
+
+    @property
+    def _is_password_reset_endpoint(self):
+        view = AccountViewSet(request=self.request)
+        try:
+            endpoint = view.reverse_action(view.reset_password.url_name, kwargs=view.request.resolver_match.kwargs)
+        except (Resolver404, NoReverseMatch):
+            return False
+        return endpoint == self.request_url_in_lowercase
+
     def _get_wrapped_response(self, request, user):
-        if user.is_active or settings.ACTIVATION_ENDPOINT in self.request_url_in_lowercase:
+        if user.is_active or self._is_activation_endpoint:
             user.device_ip = get_client_ip(request)
             return user
         raise exceptions.AuthenticationFailed("account was deactivated")
@@ -62,12 +95,12 @@ class JWTTokenAuthentication(BaseAuthentication):
             user_payload = claims.get(token.payload_key, {})
             user_id = user_payload.get("id", None) if isinstance(user_payload, dict) else user_payload
             subject = claims.get("sub", "access")
-            if settings.VERIFICATION_ENDPOINT in self.request_url_in_lowercase and subject != "verification":
-                raise jwe.JWException(f"tokens is restricted to {subject}")
-            elif settings.ACTIVATION_ENDPOINT in self.request_url_in_lowercase and subject != "activation":
-                raise jwe.JWException(f"tokens is restricted to {subject}")
-            elif settings.PASSWORD_RESET_ENDPOINT in self.request_url_in_lowercase and subject != "password-reset":
-                raise jwe.JWException(f"tokens is restricted to {subject}")
+            if self._is_verification_endpoint and subject != "verification":
+                raise jwe.JWException(f"token is restricted to {subject}")
+            elif self._is_activation_endpoint and subject != "activation":
+                raise jwe.JWException(f"token is restricted to {subject}")
+            elif self._is_password_reset_endpoint and subject != "password-reset":
+                raise jwe.JWException(f"token is restricted to {subject}")
             else:
                 try:
                     return get_user_model().objects.get(pk=user_id) if user_id else None
