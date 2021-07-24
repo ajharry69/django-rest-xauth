@@ -9,10 +9,10 @@ from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from xauth.apps.accounts import signing_salt
-from xauth.apps.accounts.mail import Mail
-from xauth.apps.accounts.managers import UserManager
-from xauth.apps.accounts.token import Token
+from xauth.accounts import signing_salt
+from xauth.accounts.mail import Mail
+from xauth.accounts.managers import UserManager
+from xauth.accounts.token import Token
 from xauth.internal_settings import *  # noqa
 
 __all__ = [
@@ -40,7 +40,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     # all the fields listed here(including the USERNAME_FIELD and password) are
     # expected as part of parameters in `objects`(UserManager).create_superuser
-    REQUIRED_FIELDS = ["email"]
+    # REQUIRED_FIELDS = ["email"]
 
     # Contains a tuple of fields that are "safe" to access publicly with proper
     # caution taken for modification
@@ -137,7 +137,7 @@ class AbstractSecurity(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, related_name="security", on_delete=models.CASCADE, primary_key=True
     )
-    security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_DEFAULT)
+    security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_NULL, null=True, blank=True)
     security_question_answer = models.CharField(max_length=150, null=True)
     temporary_password = models.CharField(max_length=8, blank=False, null=True)
     verification_code = models.CharField(max_length=6, blank=False, null=True)
@@ -148,6 +148,7 @@ class AbstractSecurity(models.Model):
     class Meta:
         abstract = True
         app_label = "accounts"
+        unique_together = ("user", "security_question")
 
 
 class AbstractPasswordResetLog(models.Model):

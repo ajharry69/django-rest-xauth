@@ -1,4 +1,4 @@
-from xauth.apps.accounts.abstract_models import *  # noqa
+from xauth.accounts.abstract_models import *  # noqa
 
 __all__ = [
     "User",

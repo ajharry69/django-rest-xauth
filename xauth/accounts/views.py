@@ -2,9 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, response, permissions
 from rest_framework.decorators import action
 
-from xauth.apps.accounts.mixins import ViewSetBasenameMixin
-from xauth.apps.accounts.permissions import IsOwner
-from xauth.apps.accounts.serializers import ProfileSerializer
+from xauth.accounts.mixins import ViewSetBasenameMixin
+from xauth.accounts.permissions import IsOwner
+from xauth.accounts.serializers import ProfileSerializer
 
 __all__ = ["AccountViewSet"]
 

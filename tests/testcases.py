@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from rest_framework.test import APITestCase
 
-from xauth.apps.accounts.models import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
+from xauth.accounts import Metadata, SecurityQuestion, FailedSignInAttempt, PasswordResetLog
 from xauth.utils.settings import *  # noqa
 
 

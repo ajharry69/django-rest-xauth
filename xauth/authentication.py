@@ -6,8 +6,8 @@ from ipware import get_client_ip
 from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
 
-from xauth.apps.accounts.token import Token
-from xauth.apps.accounts.views import AccountViewSet
+from xauth.accounts.token import Token
+from xauth.accounts.views import AccountViewSet
 from xauth.utils import is_valid_str
 
 __all__ = ["JWTTokenAuthentication"]
