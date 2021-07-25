@@ -7,15 +7,9 @@ from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
 
 from xauth.accounts.token import Token
-from xauth.accounts.views import AccountViewSet
 from xauth.utils import is_valid_str
 
 __all__ = ["JWTTokenAuthentication"]
-
-
-# VERIFICATION_ENDPOINT = reverse("")
-# ACTIVATION_ENDPOINT = reverse("")
-# PASSWORD_RESET_ENDPOINT = reverse("")
 
 
 class BaseAuthentication(authentication.BaseAuthentication):
@@ -31,6 +25,8 @@ class BaseAuthentication(authentication.BaseAuthentication):
 
     @property
     def _is_verification_endpoint(self):
+        from xauth.accounts.views import AccountViewSet
+
         view = AccountViewSet(request=self.request)
         try:
             endpoint = view.reverse_action(view.verify_account.url_name, kwargs=view.request.resolver_match.kwargs)
@@ -40,6 +36,8 @@ class BaseAuthentication(authentication.BaseAuthentication):
 
     @property
     def _is_activation_endpoint(self):
+        from xauth.accounts.views import AccountViewSet
+
         view = AccountViewSet(request=self.request)
         try:
             endpoint = view.reverse_action(view.activate_account.url_name, kwargs=view.request.resolver_match.kwargs)
@@ -49,6 +47,8 @@ class BaseAuthentication(authentication.BaseAuthentication):
 
     @property
     def _is_password_reset_endpoint(self):
+        from xauth.accounts.views import AccountViewSet
+
         view = AccountViewSet(request=self.request)
         try:
             endpoint = view.reverse_action(view.reset_password.url_name, kwargs=view.request.resolver_match.kwargs)

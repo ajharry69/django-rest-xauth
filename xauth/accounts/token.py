@@ -1,6 +1,8 @@
 import json
 import os
 from datetime import timedelta
+from hashlib import md5
+from pathlib import Path
 
 from django.conf import settings
 from django.utils.datetime_safe import datetime
@@ -25,7 +27,7 @@ class TokenKey:
 
     # Create a folder in the root directory of the project to hold generated keys
     # This directory should not be committed to version control
-    KEYS_ROOT_PATH = getattr(settings, "XAUTH_KEYS_DIR", settings.BASE_DIR)
+    KEYS_ROOT_PATH = str(getattr(settings, "XAUTH_KEYS_DIR", Path(settings.BASE_DIR).parent / ".secrets"))
 
     def __init__(self, password=settings.SECRET_KEY, signing_algorithm=JWT_SIG_ALG):
         self.password = password.encode()
@@ -80,11 +82,12 @@ class TokenKey:
         :return: `jwk.JWK` Encryption & signing key
         """
 
-        file_name, path, key = self._get_signing_or_encryption_key_or_path(private, encryption)
-        file = os.path.join(path, f"{file_name}_{datetime.now().year}.pem")
+        file_name, key = self._get_signing_or_encryption_key_or_path(private, encryption)
+        file_name = md5(f"{file_name}_{datetime.now().year}".encode(encoding="utf8", errors="replace")).hexdigest()
+        file = os.path.join(self.KEYS_ROOT_PATH, f"{file_name}.pem")
 
         try:
-            self._make_dirs_if_not_exist(path)
+            self._make_dirs_if_not_exist(self.KEYS_ROOT_PATH)
             # get key from .pem file contents
             key = self._get_key_from_pem(file, private)
         except FileNotFoundError:
@@ -94,16 +97,14 @@ class TokenKey:
         return key
 
     def _get_signing_or_encryption_key_or_path(self, private: bool, encryption: bool):
-        path = self.KEYS_ROOT_PATH
         file_name = "key"
         if encryption:
-            path += "/enc"  # `Encryption` keys directory
+            file_name = f"encryption_{file_name}"
             key = jwk.JWK.generate(kty="EC", alg="ECDH-ES", crv="P-256")
         else:
-            path += "/sig"  # `Signing` keys directory
-            file_name, key_op = self._get_key_op_and_filename_suffix(file_name, private)
+            file_name, key_op = self._get_key_op_and_filename_suffix(f"signing_{file_name}", private)
             key = jwk.JWK.generate(kty="RSA", key_ops=key_op, alg="RSA-OAEP", size=2048)
-        return file_name, path, key
+        return file_name, key
 
     @staticmethod
     def _get_key_op_and_filename_suffix(file_name, private):

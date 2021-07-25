@@ -6,7 +6,6 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
-    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 AUTH_USER_MODEL = "accounts.User"

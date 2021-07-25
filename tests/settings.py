@@ -1,8 +1,8 @@
-import os
+from pathlib import Path
 
 from xauth.settings import *  # noqa
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).parent
 
 SECRET_KEY = "z%vo6r1n!g-48zt*wg)44k_8hsv_6l2f+ve+u&ut+=pu5dr*a0"
 
@@ -15,8 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "xauth.apps.accounts.apps.AppConfig",
-    "xauth.apps.AppConfig",
+    "xauth.accounts.apps.AppConfig",
     "rest_framework",
 ]
 
@@ -34,7 +33,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -50,7 +49,7 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "NAME": BASE_DIR / "testdb.sqlite3",
     }
 }
 
@@ -76,7 +75,5 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 REST_FRAMEWORK.update(
     {
         "TEST_REQUEST_DEFAULT_FORMAT": "json",
-        "EXCEPTION_HANDLER": "xauth.utils.exceptions.exception_handler",
-        "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     }
 )

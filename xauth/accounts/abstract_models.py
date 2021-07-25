@@ -1,10 +1,10 @@
-import random
-
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core import signing
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -44,13 +44,17 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     # Contains a tuple of fields that are "safe" to access publicly with proper
     # caution taken for modification
-    READ_ONLY_FIELDS = ("id", "is_superuser", "is_staff", "is_verified")
+    READ_ONLY_FIELDS = ("is_superuser", "is_staff", "is_verified")
 
     WRITE_ONLY_FIELDS = ("password",)
 
     class Meta:
         abstract = True
         app_label = "accounts"
+
+    @classmethod
+    def serializable_fields(cls):
+        return ("email",) + cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
 
     @property
     def token(self):
@@ -79,17 +83,62 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def password_reset_token(self):
         return Token(self.token_payload, expiry_period=TEMPORARY_PASSWORD_EXPIRY, subject="password-reset")
 
-    def request_password_reset(self, send_mail=True):
-        pass
+    def request_password_reset(self, send_mail=False):
+        password = self.__class__.objects.make_random_password(8)
 
-    def request_verification(self, send_mail=True):
-        pass
+        from xauth.accounts.models import Security
 
-    def reset_password(self, temporary_password, new_password):
-        pass
+        Security.objects.update_or_create(
+            user=self,
+            defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
+        )
+
+        if send_mail:
+            self.send_email("request-password-reset", {"password": password})
+        return password
+
+    def request_verification(self, send_mail=False):
+        if self.is_verified:
+            return
+
+        code = self.__class__.objects.make_random_password(6, "23456789")
+
+        from xauth.accounts.models import Security
+
+        Security.objects.update_or_create(
+            user=self,
+            defaults={"verification_code": make_password(code), "verification_code_generation_time": timezone.now},
+        )
+
+        if send_mail:
+            self.send_email("request-verification", {"code": code})
+        return code
+
+    def reset_password(self, old_password, new_password, is_change=False):
+        try:
+            matched = check_password(old_password, self.password if is_change else self.security.temporary_password)
+        except ObjectDoesNotExist:
+            return False
+        else:
+            if matched:
+                self.set_password(new_password)
+                self.save(update_fields=["password"])
+            return matched
+
+    reset_password.alters_data = True
 
     def verify(self, code):
-        pass
+        try:
+            matched = check_password(code, self.security.verification_code)
+        except ObjectDoesNotExist:
+            return False
+        else:
+            if matched:
+                self.is_verified = True
+                self.save(update_fields=["is_verified"])
+            return matched
+
+    verify.alters_data = True
 
     def activate_account(self, security_question_answer):
         pass
@@ -100,20 +149,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         metadata.security_question_answer = answer
         metadata.save(update_fields=["security_question", "security_question_answer"])
 
-    def send_email(self, template_name: str, context=None):
+    def send_email(self, template_name, context=None):
         context = context if context else {}
         context["user"] = self
         address = Mail.Address(self.email, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES)
         Mail.send(address=address, template_name=template_name, context=context)
-
-    @classmethod
-    def get_random_code(cls, alpha_numeric: bool = True, length=None):
-        length = random.randint(8, 10) if length is None or not isinstance(length, int) else length
-        return (
-            cls.objects.make_random_password(length=length)
-            if alpha_numeric
-            else cls.objects.make_random_password(length=length, allowed_chars="23456789")
-        )
 
     @cached_property
     def token_payload(self):
@@ -139,8 +179,8 @@ class AbstractSecurity(models.Model):
     )
     security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_NULL, null=True, blank=True)
     security_question_answer = models.CharField(max_length=150, null=True)
-    temporary_password = models.CharField(max_length=8, blank=False, null=True)
-    verification_code = models.CharField(max_length=6, blank=False, null=True)
+    temporary_password = models.CharField(max_length=128, blank=False, null=True)
+    verification_code = models.CharField(max_length=128, blank=False, null=True)
     temporary_password_generation_time = models.DateTimeField(blank=True, null=True)
     verification_code_generation_time = models.DateTimeField(blank=True, null=True)
     account_deactivation_time = models.DateTimeField(blank=True, null=True)
