@@ -174,7 +174,7 @@ class Token(TokenKey):
         subject=None,
     ):
         super().__init__(signing_algorithm=signing_algorithm)
-        self._normal = None
+        self._unencrypted = None
         self._encrypted = None
         self.subject = subject if subject else "access"
         self.payload = payload
@@ -186,19 +186,13 @@ class Token(TokenKey):
         return json.dumps(self.tokens)
 
     @property
-    def normal(self):
-        """
-        :return: unencrypted token
-        """
-        if self._normal is None:
+    def unencrypted(self):
+        if self._unencrypted is None:
             self.refresh()
-        return self._normal
+        return self._unencrypted
 
     @property
     def encrypted(self):
-        """
-        :return: encrypted token
-        """
         if self._encrypted is None:
             self.refresh()
         return self._encrypted
@@ -236,9 +230,9 @@ class Token(TokenKey):
 
     @property
     def tokens(self):
-        if not self.normal or not self.encrypted:
+        if not self.unencrypted or not self.encrypted:
             self.refresh()
-        return {"normal": self.normal, "encrypted": self.encrypted}
+        return {"unencrypted": self.unencrypted, "encrypted": self.encrypted}
 
     def get_claims(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         token = self.encrypted if not token else token
@@ -255,16 +249,15 @@ class Token(TokenKey):
 
     def refresh(self):
         header = {"alg": self.signing_algorithm, "typ": "JWT"}
-        # normal(unencrypted) token
+        # unencrypted token
         token = jwt.JWT(
             header=header, claims=self.claims, check_claims=self.checked_claims, algs=self.ALLOWED_SIGNING_ALGORITHMS
         )
         token.make_signed_token(key=self.private_signing_key)
-        self._normal = token.serialize()
+        self._unencrypted = token.serialize()
         header = {"alg": "ECDH-ES", "enc": "A256GCM"}
-        # header = XAUTH.get('JWT_ENC_HEADERS', {"alg": "A256KW", "enc": "A256CBC-HS512"})
         # encrypted token
-        e_token = jwt.JWT(header=header, claims=self.normal)
+        e_token = jwt.JWT(header=header, claims=self.unencrypted)
         e_token.make_encrypted_token(key=self.encryption_key)
         self._encrypted = e_token.serialize()
         return self.tokens
