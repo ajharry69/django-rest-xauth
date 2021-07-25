@@ -13,6 +13,7 @@ class TestAccountViewSet(APITestCase):
         self.user = UserFactory(is_verified=True)
         self.username = self.email = self.user.email
         self.password = "xauth54321"
+        assert self.user.check_password(self.password)
 
     def test_signup(self):
         response = self.client.post(
@@ -107,3 +108,83 @@ class TestAccountViewSet(APITestCase):
         response = self.client.get(reverse("account-detail", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_get_user_profile_with_bearer_token_authentication(self):
+        response = self.client.get(
+            path=reverse("account-detail", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user.token.encrypted}",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data.keys()) > 1
+
+    def test_verify_account_with_invalid_code(self):
+        user = UserFactory(is_verified=False)
+        valid_code = user.request_verification()
+
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("account-verify-account", kwargs={"pk": user.pk}), data={"code": "".join(reversed(valid_code))}
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_verify_account_with_valid_code(self):
+        user = UserFactory(is_verified=False)
+        valid_code = user.request_verification()
+
+        self.client.force_login(user)
+        response = self.client.post(reverse("account-verify-account", kwargs={"pk": user.pk}), data={"code": valid_code})
+
+        assert response.status_code == status.HTTP_200_OK
+        request_user = response.wsgi_request.user
+        assert request_user.token.get_claims(response.data["token"]["encrypted"])["sub"] == "access"
+        assert request_user.is_verified
+
+    def test_reset_password_with_invalid_temporary_password(self):
+        temporary_password = self.user.request_password_reset()
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            data={"old_password": "".join(reversed(temporary_password)), "new_password": "PVs5w()r9!"},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_change_password_with_invalid_old_password(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            data={"old_password": "".join(reversed(self.password)), "new_password": "PVs5w()r9!", "is_change": True},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_reset_password_with_valid_temporary_password(self):
+        temporary_password = self.user.request_password_reset()
+
+        assert self.user.check_password(self.password)
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            data={"old_password": temporary_password, "new_password": "PVs5w()r9!"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data.keys()) > 1
+        assert "token" in response.data
+        assert response.wsgi_request.user.check_password("PVs5w()r9!")
+
+    def test_change_password_with_valid_old_password(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            data={"old_password": self.password, "new_password": "PVs5w()r9!", "is_change": True},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data.keys()) > 1
+        assert "token" in response.data
+        assert response.wsgi_request.user.check_password("PVs5w()r9!")

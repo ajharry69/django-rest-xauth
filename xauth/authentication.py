@@ -41,7 +41,7 @@ class BaseAuthentication(authentication.BaseAuthentication):
         view = AccountViewSet(request=self.request)
         try:
             endpoint = view.reverse_action(view.activate_account.url_name, kwargs=view.request.resolver_match.kwargs)
-        except (Resolver404, NoReverseMatch):
+        except (Resolver404, NoReverseMatch, AttributeError):
             return False
         return endpoint == self.request_url_in_lowercase
 
@@ -103,7 +103,7 @@ class JWTTokenAuthentication(BaseAuthentication):
                 raise jwe.JWException(f"token is restricted to {subject}")
             else:
                 try:
-                    return get_user_model().objects.get(pk=user_id) if user_id else None
+                    return get_user_model().from_signed_id(signed_id=user_id) if user_id else None
                 except get_user_model().DoesNotExist as ex:
                     raise exceptions.AuthenticationFailed(f"user not found#{ex.args[0]}")
         except jwt.JWTExpired as ex:

@@ -157,9 +157,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     verify.alters_data = True
 
-    def activate_account(self, security_question_answer):
-        pass
-
     def add_security_question(self, question, answer):
         metadata, created = apps.get_model("accounts", "Metadata").objects.get_or_create(user=self)
         metadata.security_question = question

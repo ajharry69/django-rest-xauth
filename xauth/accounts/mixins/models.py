@@ -37,6 +37,9 @@ class ActivityStatusMixin(models.Model):
             return self.activation_token
         return super().token
 
+    def activate_account(self, security_question_answer):
+        pass
+
 
 class NameMixin(models.Model):
     surname = models.CharField(db_index=True, max_length=50, blank=True, null=True)

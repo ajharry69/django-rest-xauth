@@ -1,6 +1,8 @@
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
-__all__ = ["ViewSetBasenameMixin"]
+__all__ = ["ActivateAccountViewSetMixin", "ViewSetBasenameMixin"]
 
 
 class ViewSetBasenameMixin:
@@ -16,3 +18,9 @@ class ViewSetBasenameMixin:
     @classmethod
     def _basename(cls):
         return cls.url_name_basename or DefaultRouter().get_default_basename(cls)
+
+
+class ActivateAccountViewSetMixin:
+    @action(methods=["POST"], detail=True, url_path="activate-account")
+    def activate_account(self, request, *args, **kwargs):
+        return Response()

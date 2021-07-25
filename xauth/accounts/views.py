@@ -28,6 +28,11 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
             obj = super().get_object()
         return obj
 
+    def retrieve(self, request, *args, **kwargs):
+        # We need response to return data as per class declared serializer class
+        self.serializer_class = self.__class__.serializer_class
+        return super().retrieve(request, *args, **kwargs)
+
     @action(methods=["POST"], detail=False, permission_classes=[permissions.AllowAny])
     def signup(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
@@ -64,8 +69,4 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
 
     @action(methods=["POST"], detail=True, url_path="set-security-question")
     def set_security_question(self, request, *args, **kwargs):
-        return Response()
-
-    @action(methods=["POST"], detail=True, url_path="activate-account")
-    def activate_account(self, request, *args, **kwargs):
         return Response()
