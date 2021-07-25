@@ -41,9 +41,12 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
     def signin(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    def do_request_verification_code(self, user):
+        user.request_verification(send_mail=True, request=self.request)
+
     @action(detail=True, url_path="request-verification-code")
     def request_verification_code(self, request, *args, **kwargs):
-        request.user.request_verification(send_mail=True)
+        self.do_request_verification_code(request.user)
         return self.retrieve(request, *args, **kwargs)
 
     @action(methods=["POST"], detail=True, url_path="verify-account")
@@ -52,9 +55,12 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
             return self.retrieve(request, *args, **kwargs)
         raise exceptions.ValidationError(_("Invalid verification code."))
 
+    def do_request_temporary_password(self, user):
+        user.request_password_reset(send_mail=True, request=self.request)
+
     @action(detail=True, url_path="request-temporary-password")
     def request_temporary_password(self, request, *args, **kwargs):
-        request.user.request_password_reset(send_mail=True)
+        self.do_request_temporary_password(request.user)
         response = self.retrieve(request, *args, **kwargs)
         request.user.unflag_password_reset()
         return response

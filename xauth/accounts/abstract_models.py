@@ -21,7 +21,12 @@ __all__ = [
     "AbstractSecurityQuestion",
     "AbstractFailedSignInAttempt",
     "AbstractPasswordResetLog",
+    "default_is_verified",
 ]
+
+
+def default_is_verified():
+    return not ENFORCE_ACCOUNT_VERIFICATION
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
@@ -32,7 +37,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    is_verified = models.BooleanField(default=not XAUTH_ENFORCE_ACCOUNT_VERIFICATION)
+    is_verified = models.BooleanField(default=default_is_verified)
 
     objects = UserManager()
 
@@ -87,22 +92,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def password_reset_token(self):
         return Token(self.token_payload, expiry_period=TEMPORARY_PASSWORD_EXPIRY, subject="password-reset")
 
-    def request_password_reset(self, send_mail=False):
-        password = self.__class__.objects.make_random_password(8)
-
-        from xauth.accounts.models import Security
-
-        Security.objects.update_or_create(
-            user=self,
-            defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
-        )
-
-        self._flag_password_reset()
-
-        # if send_mail:
-        #     self.send_email("request-password-reset", {"password": password})
-        return password
-
     def _flag_password_reset(self):
         assert not hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR), "Cannot modify an existing attribute"
         setattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR, True)
@@ -114,7 +103,26 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             return False
         return True
 
-    def request_verification(self, send_mail=False):
+    def request_password_reset(self, **kwargs):
+        password = self.__class__.objects.make_random_password(8)
+
+        from xauth.accounts.models import Security
+
+        Security.objects.update_or_create(
+            user=self,
+            defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
+        )
+
+        self._flag_password_reset()
+
+        if kwargs.copy().pop("send_email", False):
+            kwargs.setdefault("subject", PASSWORD_RESET_REQUEST_SUBJECT)
+            self._send_email("email-request-password-reset", {"password": password}, **kwargs)
+        return password
+
+    request_password_reset.alters_data = True
+
+    def request_verification(self, **kwargs):
         if self.is_verified:
             return
 
@@ -127,9 +135,12 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             defaults={"verification_code": make_password(code), "verification_code_generation_time": timezone.now},
         )
 
-        if send_mail:
-            self.send_email("request-verification", {"code": code})
+        if kwargs.copy().pop("send_email", False):
+            kwargs.setdefault("subject", VERIFICATION_REQUEST_SUBJECT)
+            self._send_email("email-request-verification", {"code": code}, **kwargs)
         return code
+
+    request_verification.alters_data = True
 
     def reset_password(self, old_password, new_password, is_change=False):
         try:
@@ -163,11 +174,12 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         metadata.security_question_answer = answer
         metadata.save(update_fields=["security_question", "security_question_answer"])
 
-    def send_email(self, template_name, context=None):
+    add_security_question.alters_data = True
+
+    def _send_email(self, template_name, context=None, subject=None, **kwargs):
         context = context if context else {}
         context["user"] = self
-        address = Mail.Address(self.email, reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES)
-        Mail.send(address=address, template_name=template_name, context=context)
+        Mail(subject=subject).add_recipient(self.email).send(template_name=template_name, context=context, **kwargs)
 
     @cached_property
     def token_payload(self):

@@ -88,10 +88,8 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "djangorestframework",
-        "django-templated-email",
         "django-ipware",
         "jwcrypto",
-        "timeago",
     ],
     include_package_data=True,
     zip_safe=False,
