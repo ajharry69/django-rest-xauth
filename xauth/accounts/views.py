@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
-from rest_framework import viewsets, response, permissions, exceptions
+from rest_framework import viewsets, permissions, exceptions
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from xauth.accounts.mixins import ViewSetBasenameMixin
 from xauth.accounts.permissions import IsOwner
@@ -19,10 +20,12 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
         return get_user_model().objects.filter(pk=self.request.user.pk)
 
     def get_object(self):
-        previous_kwargs = self.kwargs.copy()
-        self.kwargs.setdefault(self.lookup_url_kwarg or self.lookup_field, self.request.user.pk)
-        obj = super().get_object()
-        self.kwargs = previous_kwargs
+        lookup_key = self.lookup_url_kwarg or self.lookup_field
+        if lookup_key not in self.kwargs or self.action == "request_temporary_password":
+            obj = self.request.user
+            self.check_object_permissions(self.request, obj)
+        else:
+            obj = super().get_object()
         return obj
 
     @action(methods=["POST"], detail=False, permission_classes=[permissions.AllowAny])
@@ -47,7 +50,9 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
     @action(detail=True, url_path="request-temporary-password")
     def request_temporary_password(self, request, *args, **kwargs):
         request.user.request_password_reset(send_mail=True)
-        return self.retrieve(request, *args, **kwargs)
+        response = self.retrieve(request, *args, **kwargs)
+        request.user.unflag_password_reset()
+        return response
 
     @action(methods=["POST"], detail=True, url_path="reset-password", serializer_class=PasswordResetSerializer)
     def reset_password(self, request, *args, **kwargs):
@@ -59,8 +64,8 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
 
     @action(methods=["POST"], detail=True, url_path="set-security-question")
     def set_security_question(self, request, *args, **kwargs):
-        return response.Response()
+        return Response()
 
     @action(methods=["POST"], detail=True, url_path="activate-account")
     def activate_account(self, request, *args, **kwargs):
-        return response.Response()
+        return Response()

@@ -48,6 +48,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     WRITE_ONLY_FIELDS = ("password",)
 
+    _PASSWORD_RESET_REQUEST_FLAG_ATTR = "requested_password_reset"
+
     class Meta:
         abstract = True
         app_label = "accounts"
@@ -58,9 +60,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def token(self):
-        return (
-            self.verification_token if self.is_verified else Token(self.token_payload, expiry_period=ACCESS_TOKEN_EXPIRY)
-        )
+        if self.is_verified:
+            if hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR):
+                return self.password_reset_token
+            return Token(self.token_payload, expiry_period=ACCESS_TOKEN_EXPIRY)
+        return self.verification_token
 
     @property
     def signed_id(self):
@@ -93,9 +97,22 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
         )
 
-        if send_mail:
-            self.send_email("request-password-reset", {"password": password})
+        self._flag_password_reset()
+
+        # if send_mail:
+        #     self.send_email("request-password-reset", {"password": password})
         return password
+
+    def _flag_password_reset(self):
+        assert not hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR), "Cannot modify an existing attribute"
+        setattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR, True)
+
+    def unflag_password_reset(self):
+        try:
+            delattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR)
+        except AttributeError:
+            return False
+        return True
 
     def request_verification(self, send_mail=False):
         if self.is_verified:
