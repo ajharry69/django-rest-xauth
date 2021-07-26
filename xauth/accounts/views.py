@@ -1,24 +1,23 @@
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import viewsets, permissions, exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from xauth.accounts.mixins import ViewSetBasenameMixin
-from xauth.accounts.models import SecurityQuestion
 from xauth.accounts.permissions import IsOwner
 from xauth.accounts.serializers import *  # noqa
 
 __all__ = ["AccountViewSet", "SecurityQuestionViewSet"]
 
 
-class SecurityQuestionViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
+class SecurityQuestionViewSet(viewsets.ModelViewSet):
     serializer_class = SecurityQuestionSerializer
-    queryset = SecurityQuestion.objects.all()
+    queryset = apps.get_model("accounts", "SecurityQuestion").objects.all()
     permission_classes = [permissions.IsAdminUser]  # TODO: consider superuser only
 
 
-class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
+class AccountViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsOwner]
     queryset = get_user_model().objects.all()
@@ -93,4 +92,6 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
     def set_security_question(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            self.request.user.add_security_question(**serializer.validated_data)
             return Response()
+        raise exceptions.ValidationError(_("Invalid security question"))

@@ -1,8 +1,7 @@
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.fields import empty
-
-from xauth.accounts.models import Security, SecurityQuestion
 
 __all__ = [
     "ProfileSerializer",
@@ -49,11 +48,15 @@ class AccountVerificationSerializer(serializers.Serializer):
 
 class SecurityQuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SecurityQuestion
+        model = apps.get_model("accounts", "SecurityQuestion")
         fields = ["question"]
 
 
 class AddSecurityQuestionSerializer(serializers.ModelSerializer):
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.fields["security_question_answer"].write_only = True
+
     class Meta:
-        model = Security
+        model = apps.get_model("accounts", "Security")
         fields = ["security_question", "security_question_answer"]

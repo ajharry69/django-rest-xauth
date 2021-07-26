@@ -1,4 +1,5 @@
 import factory
+from django.apps import apps
 from django.contrib.auth import get_user_model
 
 __all__ = ["UserFactory"]
@@ -11,3 +12,11 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
     password = factory.PostGenerationMethodCall("set_password", "xauth54321")
+
+
+class SecurityQuestionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = apps.get_model("accounts", "SecurityQuestion")
+        django_get_or_create = ("question",)
+
+    question = "What is your favorite color?"

@@ -110,9 +110,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def request_password_reset(self, **kwargs):
         password = self.__class__.objects.make_random_password(self.__class__.TEMPORARY_PASSWORD_LENGTH)
 
-        from xauth.accounts.models import Security
-
-        Security.objects.update_or_create(
+        apps.get_model("accounts", "Security").objects.update_or_create(
             user=self,
             defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
         )
@@ -132,9 +130,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         code = self.__class__.objects.make_random_password(self.__class__.VERIFICATION_CODE_LENGTH, "23456789")
 
-        from xauth.accounts.models import Security
-
-        Security.objects.update_or_create(
+        apps.get_model("accounts", "Security").objects.update_or_create(
             user=self,
             defaults={"verification_code": make_password(code), "verification_code_generation_time": timezone.now},
         )
@@ -172,11 +168,15 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     verify.alters_data = True
 
-    def add_security_question(self, question, answer):
-        metadata, created = apps.get_model("accounts", "Metadata").objects.get_or_create(user=self)
-        metadata.security_question = question
-        metadata.security_question_answer = answer
-        metadata.save(update_fields=["security_question", "security_question_answer"])
+    def add_security_question(self, security_question, security_question_answer):
+        encrypted_answer = make_password(security_question_answer)
+        apps.get_model("accounts", "Security").objects.update_or_create(
+            user=self,
+            defaults={
+                "security_question": security_question,
+                "security_question_answer": encrypted_answer,
+            },
+        )
 
     add_security_question.alters_data = True
 

@@ -1,11 +1,12 @@
 import base64
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from tests.factories import UserFactory
+from tests.factories import UserFactory, SecurityQuestionFactory
 
 
 class TestAccountViewSet(APITestCase):
@@ -17,7 +18,7 @@ class TestAccountViewSet(APITestCase):
 
     def test_signup(self):
         response = self.client.post(
-            path=reverse("account-signup"),
+            path=reverse("user-signup"),
             data={
                 "email": "user@example.com",
                 "password": "PVs5w()r9!",
@@ -30,13 +31,13 @@ class TestAccountViewSet(APITestCase):
         assert isinstance(response.data["token"], dict)
 
     def test_signin_without_user_credentials(self):
-        response = self.client.post(path=reverse("account-signin"))
+        response = self.client.post(path=reverse("user-signin"))
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_signin_with_correct_basic_auth_credentials(self):
         credentials = base64.b64encode(bytes(f"{self.user.email}:xauth54321", encoding="utf8")).decode("utf8")
-        response = self.client.post(path=reverse("account-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
+        response = self.client.post(path=reverse("user-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
 
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data["token"], dict)
@@ -44,7 +45,7 @@ class TestAccountViewSet(APITestCase):
     def test_signin_to_unverified_account(self):
         user = UserFactory(is_verified=False)
         credentials = base64.b64encode(bytes(f"{user.email}:xauth54321", encoding="utf8")).decode("utf8")
-        response = self.client.post(path=reverse("account-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
+        response = self.client.post(path=reverse("user-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
 
         assert response.status_code == status.HTTP_200_OK
         assert "token" in response.data
@@ -53,7 +54,7 @@ class TestAccountViewSet(APITestCase):
 
     def test_signin_to_verified_account(self):
         credentials = base64.b64encode(bytes(f"{self.user.email}:xauth54321", encoding="utf8")).decode("utf8")
-        response = self.client.post(path=reverse("account-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
+        response = self.client.post(path=reverse("user-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
 
         assert response.status_code == status.HTTP_200_OK
         assert "token" in response.data
@@ -62,19 +63,19 @@ class TestAccountViewSet(APITestCase):
 
     def test_signin_with_incorrect_basic_auth_credentials(self):
         credentials = base64.b64encode(bytes(f"{self.user.email}:xauth54321-invalid", encoding="utf8")).decode("utf8")
-        response = self.client.post(path=reverse("account-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
+        response = self.client.post(path=reverse("user-signin"), HTTP_AUTHORIZATION=f"Basic {credentials}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_request_verification_code_requires_authentication(self):
-        response = self.client.post(reverse("account-request-verification-code", kwargs={"pk": self.user.pk}))
+        response = self.client.post(reverse("user-request-verification-code", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_request_verification_code_returns_verification_token(self):
         user = UserFactory(is_verified=False)
         self.client.force_login(user)
-        response = self.client.get(reverse("account-request-verification-code", kwargs={"pk": user.pk}))
+        response = self.client.get(reverse("user-request-verification-code", kwargs={"pk": user.pk}))
 
         assert response.status_code == status.HTTP_200_OK
         assert "token" in response.data
@@ -82,13 +83,13 @@ class TestAccountViewSet(APITestCase):
         assert response.wsgi_request.user.token.subject == "verification"
 
     def test_request_temporary_password_requires_authentication(self):
-        response = self.client.post(reverse("account-request-temporary-password", kwargs={"pk": self.user.pk}))
+        response = self.client.post(reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_request_temporary_password_returns_password_reset_token(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("account-request-temporary-password", kwargs={"pk": self.user.pk}))
+        response = self.client.get(reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_200_OK
         assert "token" in response.data
@@ -100,19 +101,19 @@ class TestAccountViewSet(APITestCase):
     def test_get_user_profile_must_match_id_in_authorization_header_and_url_look_kwarg(self):
         user = UserFactory()
         self.client.force_login(self.user)
-        response = self.client.get(reverse("account-detail", kwargs={"pk": user.pk}))
+        response = self.client.get(reverse("user-detail", kwargs={"pk": user.pk}))
 
         assert user.pk != self.user.pk
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-        response = self.client.get(reverse("account-detail", kwargs={"pk": self.user.pk}))
+        response = self.client.get(reverse("user-detail", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_200_OK
         assert "token" not in response.data
 
     def test_get_user_profile_with_bearer_token_authentication(self):
         response = self.client.get(
-            path=reverse("account-detail", kwargs={"pk": self.user.pk}),
+            path=reverse("user-detail", kwargs={"pk": self.user.pk}),
             HTTP_AUTHORIZATION=f"Bearer {self.user.token.encrypted}",
         )
 
@@ -126,7 +127,7 @@ class TestAccountViewSet(APITestCase):
 
         self.client.force_login(user)
         response = self.client.post(
-            reverse("account-verify-account", kwargs={"pk": user.pk}), data={"code": "".join(reversed(valid_code))}
+            reverse("user-verify-account", kwargs={"pk": user.pk}), data={"code": "".join(reversed(valid_code))}
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -136,7 +137,7 @@ class TestAccountViewSet(APITestCase):
         valid_code = user.request_verification()
 
         self.client.force_login(user)
-        response = self.client.post(reverse("account-verify-account", kwargs={"pk": user.pk}), data={"code": valid_code})
+        response = self.client.post(reverse("user-verify-account", kwargs={"pk": user.pk}), data={"code": valid_code})
 
         assert response.status_code == status.HTTP_200_OK
         request_user = response.wsgi_request.user
@@ -148,7 +149,7 @@ class TestAccountViewSet(APITestCase):
 
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            reverse("user-reset-password", kwargs={"pk": self.user.pk}),
             data={"old_password": "".join(reversed(temporary_password)), "new_password": "PVs5w()r9!"},
         )
 
@@ -157,7 +158,7 @@ class TestAccountViewSet(APITestCase):
     def test_change_password_with_invalid_old_password(self):
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            reverse("user-reset-password", kwargs={"pk": self.user.pk}),
             data={"old_password": "".join(reversed(self.password)), "new_password": "PVs5w()r9!", "is_change": True},
         )
 
@@ -170,7 +171,7 @@ class TestAccountViewSet(APITestCase):
 
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            reverse("user-reset-password", kwargs={"pk": self.user.pk}),
             data={"old_password": temporary_password, "new_password": "PVs5w()r9!"},
         )
 
@@ -182,7 +183,7 @@ class TestAccountViewSet(APITestCase):
     def test_change_password_with_valid_old_password(self):
         self.client.force_login(self.user)
         response = self.client.post(
-            reverse("account-reset-password", kwargs={"pk": self.user.pk}),
+            reverse("user-reset-password", kwargs={"pk": self.user.pk}),
             data={"old_password": self.password, "new_password": "PVs5w()r9!", "is_change": True},
         )
 
@@ -190,3 +191,33 @@ class TestAccountViewSet(APITestCase):
         assert len(response.data.keys()) > 1
         assert "token" in response.data
         assert response.wsgi_request.user.check_password("PVs5w()r9!")
+
+    def test_set_security_question_without_authentication_credentials(self):
+        security_question = SecurityQuestionFactory()
+        response = self.client.post(
+            reverse("user-set-security-question", kwargs={"pk": self.user.pk}),
+            data={
+                "security_question": security_question.pk,
+                "security_question_answer": "Transparent",
+            },
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_set_security_question_with_authentication_credentials(self):
+        security_question = SecurityQuestionFactory()
+
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("user-set-security-question", kwargs={"pk": self.user.pk}),
+            data={
+                "security_question": security_question.pk,
+                "security_question_answer": "Transparent",
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert self.user.security.security_question == security_question
+        # Not stored without encryption
+        assert self.user.security.security_question_answer != "Transparent"
+        assert check_password("Transparent", self.user.security.security_question_answer)
