@@ -1,12 +1,19 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-
 from rest_framework.fields import empty
 
-__all__ = ["ProfileSerializer", "PasswordResetSerializer"]
+from xauth.accounts.models import Security, SecurityQuestion
+
+__all__ = [
+    "ProfileSerializer",
+    "PasswordResetSerializer",
+    "SecurityQuestionSerializer",
+    "AccountVerificationSerializer",
+    "AddSecurityQuestionSerializer",
+]
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     token = serializers.JSONField(source="token.tokens", read_only=True)
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -14,9 +21,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         for field in self.Meta.model.WRITE_ONLY_FIELDS:
             self.fields[field].write_only = True
 
+        for field in kwargs.pop("context", {}).get("remove_fields") or []:
+            del self.fields[field]
+
     class Meta:
         model = get_user_model()
-        fields = model.serializable_fields() + ("token",)
+        fields = model.serializable_fields() + ("token", "url")
         read_only_fields = model.READ_ONLY_FIELDS
 
 
@@ -27,3 +37,23 @@ class PasswordResetSerializer(serializers.Serializer):
 
     class Meta:
         fields = ("old_password", "new_password", "is_change")
+
+
+class AccountVerificationSerializer(serializers.Serializer):
+    code = serializers.CharField(
+        write_only=True,
+        min_length=get_user_model().VERIFICATION_CODE_LENGTH,
+        max_length=get_user_model().VERIFICATION_CODE_LENGTH,
+    )
+
+
+class SecurityQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SecurityQuestion
+        fields = ["question"]
+
+
+class AddSecurityQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Security
+        fields = ["security_question", "security_question_answer"]

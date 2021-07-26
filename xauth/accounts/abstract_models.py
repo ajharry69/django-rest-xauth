@@ -53,6 +53,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     WRITE_ONLY_FIELDS = ("password",)
 
+    VERIFICATION_CODE_LENGTH = 6
+
+    TEMPORARY_PASSWORD_LENGTH = 8
+
     _PASSWORD_RESET_REQUEST_FLAG_ATTR = "requested_password_reset"
 
     class Meta:
@@ -104,7 +108,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         return True
 
     def request_password_reset(self, **kwargs):
-        password = self.__class__.objects.make_random_password(8)
+        password = self.__class__.objects.make_random_password(self.__class__.TEMPORARY_PASSWORD_LENGTH)
 
         from xauth.accounts.models import Security
 
@@ -126,7 +130,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if self.is_verified:
             return
 
-        code = self.__class__.objects.make_random_password(6, "23456789")
+        code = self.__class__.objects.make_random_password(self.__class__.VERIFICATION_CODE_LENGTH, "23456789")
 
         from xauth.accounts.models import Security
 
@@ -189,7 +193,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 class AbstractSecurityQuestion(models.Model):
     question = models.CharField(max_length=255, blank=False, null=False, unique=True)
     added_on = models.DateTimeField(auto_now_add=True)
-    usable = models.BooleanField(default=True)
 
     class Meta:
         abstract = True

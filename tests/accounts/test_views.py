@@ -108,6 +108,7 @@ class TestAccountViewSet(APITestCase):
         response = self.client.get(reverse("account-detail", kwargs={"pk": self.user.pk}))
 
         assert response.status_code == status.HTTP_200_OK
+        assert "token" not in response.data
 
     def test_get_user_profile_with_bearer_token_authentication(self):
         response = self.client.get(
@@ -117,6 +118,7 @@ class TestAccountViewSet(APITestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data.keys()) > 1
+        assert "token" not in response.data
 
     def test_verify_account_with_invalid_code(self):
         user = UserFactory(is_verified=False)
