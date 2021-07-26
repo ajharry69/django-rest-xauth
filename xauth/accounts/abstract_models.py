@@ -67,6 +67,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def serializable_fields(cls):
         return ("email",) + cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
 
+    @classmethod
+    def admin_panel_fields(cls):
+        return ("email",)
+
     @property
     def token(self):
         if self.is_verified:
