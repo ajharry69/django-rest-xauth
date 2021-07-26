@@ -36,12 +36,12 @@
 
 **Method:** `POST`
 
-**Expected Data:** `username` and `password` or None(no POST request data) when `Authorization` header with 
+**Expected Data:** `username` and `password` or None(no POST request data) when `Authorization` header with
 [basic-auth][basic-auth-scheme] credentials provided.
 
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
-2. **Authorization:** `Basic <credentials>` or None(no authorization header) when `username` and `password` POST 
+2. **Authorization:** `Basic <credentials>` or None(no authorization header) when `username` and `password` POST
 request data is provided.
 
 ## Logout/Sign-out
@@ -67,9 +67,9 @@ request data is provided.
 **Expected Data:** Only necessary for `PUT` and `PATCH` methods.
 
 **NOTE:**
-- `GET` is by default allowed to everyone(even non-authenticated users) while `PUT`, `PATCH` or `DELETE` is restricted 
+- `GET` is by default allowed to everyone(even non-authenticated users) while `PUT`, `PATCH` or `DELETE` is restricted
 to the account owner(determined by the credentials provided in `Authorization` header) or the superuser.
-- `pk` in the endpoint is the default [`USER_LOOKUP_FIELD`][user-lookup-field-url] setting. Changing it will require a 
+- `pk` in the endpoint is the default [`USER_LOOKUP_FIELD`][user-lookup-field-url] setting. Changing it will require a
 change on the same setting too.
 
 ### Request Headers
@@ -96,7 +96,7 @@ change on the same setting too.
 
 **Method:** `POST`
 
-**Expected Data:** `code=<sent-verification-code>` 
+**Expected Data:** `code=<sent-verification-code>`
 
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
@@ -121,7 +121,7 @@ change on the same setting too.
 
 **Method:** `POST`
 
-**Expected Data:** (`temporary_password=<sent-password>` or `old_password=<sent-password>`) and `new_password=<value>` 
+**Expected Data:** (`temporary_password=<sent-password>` or `old_password=<sent-password>`) and `new_password=<value>`
 
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
@@ -136,7 +136,7 @@ change on the same setting too.
 
 **Expected Data:** `username=<username/email-address>` of the user whose account is inactive.
 
-**Return Data:** user **_activation token(s)_** and list of possible account deactivation schemes/methods available 
+**Return Data:** user **_activation token(s)_** and list of possible account deactivation schemes/methods available
 for the user in question.
 
 ### Request Headers
@@ -149,11 +149,11 @@ for the user in question.
 
 **Method:** `POST`
 
-**Expected Data:** `answer=<security-question-answer>` 
+**Expected Data:** `answer=<security-question-answer>`
 
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
-2. **Authorization:** `Bearer <encrypted-activation-token>` or `Basic <credentials>` 
+2. **Authorization:** `Bearer <encrypted-activation-token>` or `Basic <credentials>`
 
 ## Add/attach security question
 **Default:** `security-question/add/`
@@ -162,15 +162,15 @@ for the user in question.
 
 **Method:** `POST`
 
-**Expected Data:** `question|id|question_id=<value>` and `answer|question_answer=<value>`. `question`, `id` or 
+**Expected Data:** `question|id|question_id=<value>` and `answer|question_answer=<value>`. `question`, `id` or
 `question_id` can either be one of admin/superuser-registered security question's id or case-sensitive name.
 
-**Assumption:** user will configure(add/attach) a security question after creating a verified account(more like an 
+**Assumption:** user will configure(add/attach) a security question after creating a verified account(more like an
 account update).
 
 ### Request Headers
 1. **Content-Type:** `application/x-www-form-urlencoded`
-2. **Authorization:** `Bearer <encrypted-access-token>` or `Basic <credentials>` 
+2. **Authorization:** `Bearer <encrypted-access-token>` or `Basic <credentials>`
 
 ## Retrieve security questions
 **Default:** `security-questions/`
