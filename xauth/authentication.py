@@ -2,6 +2,7 @@ import re
 
 from django.contrib.auth import get_user_model
 from django.urls.exceptions import Resolver404, NoReverseMatch
+from django.utils.translation import gettext as _
 from ipware import get_client_ip
 from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
@@ -79,8 +80,7 @@ class JWTTokenAuthentication(BaseAuthentication):
         # encoding of username & password combination for Basic auth or Bearer|Token value/data)
         authorization_data = auth_header_data.split()
         if len(authorization_data) > 1:
-            auth_scheme = authorization_data[0].lower()  # expected to be the first
-            if re.match(r"^(bearer|token)$", auth_scheme):
+            if re.match(r"^bearer$", authorization_data[0], flags=re.I):
                 user = self.get_user_from_jwt_token(authorization_data[1])
                 return self._get_wrapped_response(request, user), authorization_data[1] if user else None
         return None  # unknown/unsupported authentication scheme
@@ -92,23 +92,22 @@ class JWTTokenAuthentication(BaseAuthentication):
         try:
             token = Token(None)
             claims = token.get_claims(token=jwt_token)
-            user_payload = claims.get(token.payload_key, {})
-            user_id = user_payload.get("id", None) if isinstance(user_payload, dict) else user_payload
-            subject = claims.get("sub", "access")
-            if self._is_verification_endpoint and subject != "verification":
-                raise jwe.JWException(f"token is restricted to {subject}")
-            elif self._is_activation_endpoint and subject != "activation":
-                raise jwe.JWException(f"token is restricted to {subject}")
-            elif self._is_password_reset_endpoint and subject != "password-reset":
-                raise jwe.JWException(f"token is restricted to {subject}")
+            if claims["sub"] != "verification" and self._is_verification_endpoint:
+                raise jwe.JWException
+            elif claims["sub"] != "activation" and self._is_activation_endpoint:
+                raise jwe.JWException
+            elif claims["sub"] != "password-reset" and self._is_password_reset_endpoint:
+                raise jwe.JWException
             else:
                 try:
-                    return get_user_model().from_signed_id(signed_id=user_id) if user_id else None
-                except get_user_model().DoesNotExist as ex:
-                    raise exceptions.AuthenticationFailed(f"user not found#{ex.args[0]}")
-        except jwt.JWTExpired as ex:
-            raise exceptions.AuthenticationFailed(f"expired token#{ex.args[0]}")
-        except jwt.JWTNotYetValid as ex:
-            raise exceptions.AuthenticationFailed(f"token not ready for use#{ex.args[0]}")
-        except jwe.JWException as ex:
-            raise exceptions.AuthenticationFailed(f"invalid token#{ex.args[0]}")
+                    user = get_user_model().from_signed_id(signed_id=claims[token.payload_key]["id"])
+                except get_user_model().DoesNotExist:
+                    raise exceptions.AuthenticationFailed
+                else:
+                    if user:
+                        return user
+                    raise jwt.JWTInvalidClaimValue
+        except jwt.JWTExpired:
+            raise exceptions.AuthenticationFailed(_("Expired token"), code="expired_token")
+        except jwe.JWException:
+            raise exceptions.AuthenticationFailed(_("Invalid token"), code="invalid_token")

@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.conf import settings
-
 from django.utils.translation import gettext_lazy as _
 
 __all__ = [
@@ -19,6 +18,7 @@ __all__ = [
     "APP_NAME",
     "PASSWORD_RESET_REQUEST_SUBJECT",
     "VERIFICATION_REQUEST_SUBJECT",
+    "PROVIDER_CHOICES",
 ]
 
 APP_NAME = getattr(settings, "XAUTH_EMAIL_APP_NAME", "")
@@ -26,11 +26,12 @@ PASSWORD_RESET_REQUEST_SUBJECT = getattr(settings, "XAUTH_PASSWORD_RESET_REQUEST
 VERIFICATION_REQUEST_SUBJECT = getattr(settings, "XAUTH_VERIFICATION_REQUEST_SUBJECT", _("Account Verification"))
 ENFORCE_ACCOUNT_VERIFICATION = getattr(settings, "XAUTH_ENFORCE_ACCOUNT_VERIFICATION", True)
 ACCESS_TOKEN_EXPIRY = TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCESS_TOKEN_EXPIRY", timedelta(days=1))
-VERIFICATION_CODE_EXPIRY = getattr(settings, "XAUTH_VERIFICATION_CODE_EXPIRY", timedelta(minutes=5))
-TEMPORARY_PASSWORD_EXPIRY = getattr(settings, "XAUTH_TEMPORARY_PASSWORD_EXPIRY", timedelta(minutes=5))
+VERIFICATION_CODE_EXPIRY = getattr(settings, "XAUTH_VERIFICATION_CODE_EXPIRY", timedelta(minutes=30))
+TEMPORARY_PASSWORD_EXPIRY = getattr(settings, "XAUTH_TEMPORARY_PASSWORD_EXPIRY", timedelta(minutes=30))
+ACCOUNT_ACTIVATION_TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCOUNT_ACTIVATION_TOKEN_EXPIRY", timedelta(minutes=30))
 SENDER_ADDRESS = getattr(settings, "XAUTH_SENDER_ADDRESS", settings.EMAIL_HOST_USER)
-SENDER_ADDRESS_PASSWORD = getattr(settings, "XAUTH_SENDER_ADDRESS", settings.EMAIL_HOST_PASSWORD)
+SENDER_ADDRESS_PASSWORD = getattr(settings, "XAUTH_SENDER_ADDRESS_PASSWORD", settings.EMAIL_HOST_PASSWORD)
 REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES = getattr(settings, "XAUTH_REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES", None)
 DATE_INPUT_FORMAT = getattr(settings, "XAUTH_DATE_INPUT_FORMAT", settings.DATE_INPUT_FORMATS[0])
-ACCOUNT_ACTIVATION_TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCOUNT_ACTIVATION_TOKEN_EXPIRY", timedelta(minutes=5))
 REQUEST_TOKEN_ENCRYPTED = getattr(settings, "XAUTH_GENERATE_ENCRYPTED_TOKENS", True)
+PROVIDER_CHOICES = getattr(settings, "XAUTH_PROVIDER_CHOICES", [(1, "Email")])

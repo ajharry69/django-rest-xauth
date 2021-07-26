@@ -1,6 +1,5 @@
 import re
 
-from django.conf import settings
 from django.db import models
 from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
@@ -18,7 +17,7 @@ __all__ = [
 
 
 def auth_providers():
-    return getattr(settings, "XAUTH_PROVIDER_CHOICES", [(1, "Email")])
+    return PROVIDER_CHOICES
 
 
 class ActivityStatusMixin(models.Model):
@@ -38,7 +37,7 @@ class ActivityStatusMixin(models.Model):
         return super().token
 
     def activate_account(self, security_question_answer):
-        pass
+        pass  # TODO: Implement...
 
 
 class NameMixin(models.Model):

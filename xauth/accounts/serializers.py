@@ -8,6 +8,7 @@ __all__ = [
     "PasswordResetSerializer",
     "SecurityQuestionSerializer",
     "AccountVerificationSerializer",
+    "AccountActivationSerializer",
     "AddSecurityQuestionSerializer",
 ]
 
@@ -44,6 +45,10 @@ class AccountVerificationSerializer(serializers.Serializer):
         min_length=get_user_model().VERIFICATION_CODE_LENGTH,
         max_length=get_user_model().VERIFICATION_CODE_LENGTH,
     )
+
+
+class AccountActivationSerializer(serializers.Serializer):
+    security_question_answer = serializers.CharField(write_only=True)
 
 
 class SecurityQuestionSerializer(serializers.ModelSerializer):
