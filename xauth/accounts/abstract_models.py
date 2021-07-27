@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.password_validation import validate_password
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -30,10 +31,6 @@ def default_is_verified():
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
-    """
-    Guidelines: https://docs.djangoproject.com/en/3.0/topics/auth/customizing/
-    """
-
     email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -145,6 +142,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         return code
 
     request_verification.alters_data = True
+
+    def set_password(self, raw_password):
+        validate_password(raw_password, user=self)
+        super().set_password(raw_password)
 
     def reset_password(self, old_password, new_password, is_change=False):
         try:

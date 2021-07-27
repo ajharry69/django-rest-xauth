@@ -5,7 +5,7 @@ from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
 
 from xauth.accounts.token import Token
-from xauth.internal_settings import *  # noqa
+from xauth.internal_settings import *  # noqa F405
 from xauth.utils import is_valid_str
 
 __all__ = [
