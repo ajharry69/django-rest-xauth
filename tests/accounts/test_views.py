@@ -221,3 +221,23 @@ class TestAccountViewSet(APITestCase):
         # Not stored without encryption
         assert self.user.security.security_question_answer != "Transparent"
         assert check_password("Transparent", self.user.security.security_question_answer)
+
+    def test_activate_account_without_authentication_credentials(self):
+        response = self.client.post(
+            reverse("user-activate-account", kwargs={"pk": self.user.pk}),
+            data={
+                "security_question_answer": "answer",
+            },
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_activate_account_with_authentication_credentials(self):
+        self.client.force_login(self.user)
+        with self.assertRaisesRegex(AttributeError, r".*models.ActivityStatusMixin.*"):
+            self.client.post(
+                reverse("user-activate-account", kwargs={"pk": self.user.pk}),
+                data={
+                    "security_question_answer": "answer",
+                },
+            )

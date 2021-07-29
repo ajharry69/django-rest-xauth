@@ -1,5 +1,7 @@
 import re
 
+from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
@@ -37,7 +39,18 @@ class ActivityStatusMixin(models.Model):
         return super().token
 
     def activate_account(self, security_question_answer):
-        pass  # TODO: Implement...
+        if self.is_active:
+            return
+
+        try:
+            matched = check_password(security_question_answer, self.security.security_question_answer)
+        except ObjectDoesNotExist:
+            return False
+        else:
+            if matched:
+                self.is_active = True
+                self.save(update_fields=["is_active"])
+            return matched
 
 
 class NameMixin(models.Model):
@@ -105,13 +118,13 @@ class DateOfBirthMixin(models.Model):
         unit = unit.lower() if is_valid_str(unit) else "y"
         days = (datetime.now().date() - datetime.strptime(self.date_of_birth, DATE_INPUT_FORMAT).date()).days
         age = days
-        if re.match("^y+", unit):
+        if re.match("^y+", unit, re.I):
             age = int(days / 365)
-        elif re.match("^m+", unit):
+        elif re.match("^m+", unit, re.I):
             age = int(days / 30)
-        elif re.match("^w+", unit):
+        elif re.match("^w+", unit, re.I):
             age = int(days / 7)
-        elif re.match("^d+", unit):
+        elif re.match("^d+", unit, re.I):
             age = days
         return age
 
