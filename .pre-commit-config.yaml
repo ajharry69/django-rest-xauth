@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: trailing-whitespace
+        language_version: python3
+  - repo: https://gitlab.com/PyCQA/flake8
+    rev: 3.8.4
+    hooks:
+      - id: flake8
+        exclude: migrations
+        args: [ "--max-line-length=121", "--ignore=F405,E203,W503", "--exclude=migrations,django-rest-xauth" ]
+        language_version: python3
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+      - id: black
+        args: [ "--line-length=121" ]
+        language_version: python3

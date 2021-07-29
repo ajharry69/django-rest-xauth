@@ -1,0 +1,9 @@
+{% block subject %}{{ subject|default:"Account Verification"}}{% endblock %}
+{% block body %}
+    <p>Please use <strong>{{ code }}</strong> as verification code to verify your {{ app_name }} account.</p>
+
+    <p><strong>NOTE:</strong> the verification code will expire shortly!</p>
+
+    <p>You received this email because you recently created an account with {{ app_name }}. If you did not, you can
+        discard or ignore this email.</p>
+{% endblock %}

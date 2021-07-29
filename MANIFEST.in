@@ -1,4 +1,4 @@
+graft xauth
 include LICENSE
 include README.md
-recursive-include xauth/templates *
 recursive-include docs *

@@ -13,7 +13,7 @@ def get_next_version(old_version: str = __version__, max_minor: int = 9, max_pat
      "1.9.9" = "2.0.0"
      "10.9.9" = "11.0.0"
     """
-    major, minor, patch = tuple([int(n) for n in old_version.split('.', 3)])
+    major, minor, patch = tuple([int(n) for n in old_version.split(".", 3)])
     patch = patch + 1 if patch <= max_patch else patch
     if patch > max_patch:
         patch = 0
@@ -22,4 +22,4 @@ def get_next_version(old_version: str = __version__, max_minor: int = 9, max_pat
             minor = 0
             major = major + 1
 
-    return f'{major}.{minor}.{patch}'
+    return f"{major}.{minor}.{patch}"
