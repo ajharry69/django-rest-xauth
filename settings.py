@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "xauth.accounts.apps.AppConfig",
+    "xauth.apps.AppConfig",
     "rest_framework",
 ]
 

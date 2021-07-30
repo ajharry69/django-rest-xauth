@@ -1,30 +1,42 @@
 from xauth.accounts.abstract_models import *  # noqa
 
-__all__ = [
-    "User",
-    "SecurityQuestion",
-    "Security",
-    "PasswordResetLog",
-    "FailedSignInAttempt",
-]
+from xauth.utils import is_model_registered
 
+__all__ = []
 
-class User(AbstractUser):
-    class Meta(AbstractUser.Meta):
-        swappable = "AUTH_USER_MODEL"
+if not is_model_registered("xauth", "User"):
 
+    class User(AbstractUser):
+        class Meta(AbstractUser.Meta):
+            swappable = "AUTH_USER_MODEL"
+            app_label = "xauth"
 
-class SecurityQuestion(AbstractSecurityQuestion):
-    pass
+    __all__ += ["User"]
 
+if not is_model_registered("accounts", "SecurityQuestion"):
 
-class Security(AbstractSecurity):
-    pass
+    class SecurityQuestion(AbstractSecurityQuestion):
+        pass
 
+    __all__ += ["SecurityQuestion"]
 
-class PasswordResetLog(AbstractPasswordResetLog):
-    pass
+if not is_model_registered("accounts", "Security"):
 
+    class Security(AbstractSecurity):
+        pass
 
-class FailedSignInAttempt(AbstractFailedSignInAttempt):
-    pass
+    __all__ += ["Security"]
+
+if not is_model_registered("accounts", "PasswordResetLog"):
+
+    class PasswordResetLog(AbstractPasswordResetLog):
+        pass
+
+    __all__ += ["PasswordResetLog"]
+
+if not is_model_registered("accounts", "FailedSignInAttempt"):
+
+    class FailedSignInAttempt(AbstractFailedSignInAttempt):
+        pass
+
+    __all__ += ["FailedSignInAttempt"]

@@ -8,7 +8,6 @@ from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
 
 from xauth.accounts.token import Token
-from xauth.utils import is_valid_str
 
 __all__ = ["JWTTokenAuthentication"]
 
@@ -72,7 +71,7 @@ class JWTTokenAuthentication(BaseAuthentication):
 
         header = authentication.get_authorization_header(self.request)
         auth_header_data = header.decode() if isinstance(header, bytes) else header
-        if not is_valid_str(auth_header_data):
+        if not auth_header_data:
             return
 
         # an authorization header was provided

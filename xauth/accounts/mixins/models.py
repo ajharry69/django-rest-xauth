@@ -8,7 +8,6 @@ from django.utils.functional import cached_property
 
 from xauth.accounts.token import Token
 from xauth.internal_settings import *  # noqa F405
-from xauth.utils import is_valid_str
 
 __all__ = [
     "ActivityStatusMixin",
@@ -75,7 +74,7 @@ class NameMixin(models.Model):
         if not name and hasattr(self, "username"):
             # name is empty, use username instead
             name = self.username
-        return name if name and is_valid_str(name) else None
+        return name if name else None
 
     def get_short_name(self):
         """
@@ -84,7 +83,7 @@ class NameMixin(models.Model):
         the user's real name, we return their username instead.
         """
         name = self.get_full_name()
-        if is_valid_str(name):
+        if name:
             return name.split()[0] if " " in name else name
         return name
 
@@ -115,7 +114,6 @@ class DateOfBirthMixin(models.Model):
         if self.date_of_birth is None:
             return 0
 
-        unit = unit.lower() if is_valid_str(unit) else "y"
         days = (datetime.now().date() - datetime.strptime(self.date_of_birth, DATE_INPUT_FORMAT).date()).days
         age = days
         if re.match("^y+", unit, re.I):
