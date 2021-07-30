@@ -23,8 +23,14 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         for field in self.Meta.model.WRITE_ONLY_FIELDS:
             self.fields[field].write_only = True
 
-        for field in set(kwargs.pop("context", {}).get("remove_fields") or []):
-            del self.fields[field]
+        remove_fields = kwargs.pop("context", {}).get("remove_fields")
+        if isinstance(remove_fields, str):
+            if remove_fields != "__all__":
+                raise ValueError("'remove_fields' value can either be an iterable of field names or '__all__'")
+            self.fields.clear()
+        else:
+            for field in set(remove_fields or []):
+                del self.fields[field]
 
     class Meta:
         model = get_user_model()
@@ -70,10 +76,12 @@ class SecurityQuestionSerializer(serializers.ModelSerializer):
 
 
 class AddSecurityQuestionSerializer(serializers.ModelSerializer):
-    def __init__(self, instance=None, data=empty, **kwargs):
-        super().__init__(instance, data, **kwargs)
-        self.fields["security_question_answer"].write_only = True
-
     class Meta:
         model = apps.get_model(AUTH_APP_LABEL, "Security")
         fields = ["security_question", "security_question_answer"]
+        extra_kwargs = {
+            "security_question_answer": {
+                "write_only": True,
+                "style": {"input_type": "password"},
+            },
+        }

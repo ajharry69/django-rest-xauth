@@ -50,6 +50,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             remove_fields += ["password", "token"]
         elif self.action in ["set_security_question", "retrieve", "list"]:
             remove_fields.append("token")
+        elif self.action == "signout":
+            remove_fields = "__all__"
         context["remove_fields"] = remove_fields
         return context
 
