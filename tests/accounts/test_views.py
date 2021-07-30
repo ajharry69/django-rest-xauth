@@ -234,7 +234,7 @@ class TestAccountViewSet(APITestCase):
 
     def test_activate_account_with_authentication_credentials(self):
         self.client.force_login(self.user)
-        with self.assertRaisesRegex(AttributeError, r".*models.ActivityStatusMixin.*"):
+        with self.assertRaisesRegex(AttributeError, r".*models.UserActivationMixin.*"):
             self.client.post(
                 reverse("user-activate-account", kwargs={"pk": self.user.pk}),
                 data={

@@ -1,7 +1,7 @@
-__version__ = "1.1.2"
+__version__ = "2.0.0"
 
 
-def get_next_version(old_version: str = __version__, max_minor: int = 9, max_patch: int = 9):
+def get_next_version(old_version=__version__, max_minor=9, max_patch=9):
     """
     Calculates and returns the next version of a software that uses **major**.**minor**.**patch**
      from `old_version`.

@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.fields import empty
 
+from xauth.internal_settings import AUTH_APP_LABEL
+
 __all__ = [
     "ProfileSerializer",
     "PasswordResetSerializer",
@@ -53,7 +55,7 @@ class AccountActivationSerializer(serializers.Serializer):
 
 class SecurityQuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("accounts", "SecurityQuestion")
+        model = apps.get_model(AUTH_APP_LABEL, "SecurityQuestion")
         fields = ["question"]
 
 
@@ -63,5 +65,5 @@ class AddSecurityQuestionSerializer(serializers.ModelSerializer):
         self.fields["security_question_answer"].write_only = True
 
     class Meta:
-        model = apps.get_model("accounts", "Security")
+        model = apps.get_model(AUTH_APP_LABEL, "Security")
         fields = ["security_question", "security_question_answer"]

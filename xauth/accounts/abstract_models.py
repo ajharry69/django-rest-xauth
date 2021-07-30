@@ -14,7 +14,15 @@ from xauth.accounts import signing_salt
 from xauth.accounts.mail import Mail
 from xauth.accounts.managers import UserManager
 from xauth.accounts.token import Token
-from xauth.internal_settings import *  # noqa
+from xauth.internal_settings import (
+    ENFORCE_ACCOUNT_VERIFICATION,
+    AUTH_APP_LABEL,
+    ACCESS_TOKEN_EXPIRY,
+    VERIFICATION_CODE_EXPIRY,
+    TEMPORARY_PASSWORD_EXPIRY,
+    PASSWORD_RESET_REQUEST_SUBJECT,
+    VERIFICATION_REQUEST_SUBJECT,
+)
 
 __all__ = [
     "AbstractUser",
@@ -58,7 +66,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         abstract = True
-        app_label = "accounts"
+        app_label = AUTH_APP_LABEL
 
     @classmethod
     def serializable_fields(cls):
@@ -111,7 +119,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def request_password_reset(self, **kwargs):
         password = self.__class__.objects.make_random_password(self.__class__.TEMPORARY_PASSWORD_LENGTH)
 
-        apps.get_model("accounts", "Security").objects.update_or_create(
+        apps.get_model(AUTH_APP_LABEL, "Security").objects.update_or_create(
             user=self,
             defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
         )
@@ -131,7 +139,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         code = self.__class__.objects.make_random_password(self.__class__.VERIFICATION_CODE_LENGTH, "23456789")
 
-        apps.get_model("accounts", "Security").objects.update_or_create(
+        apps.get_model(AUTH_APP_LABEL, "Security").objects.update_or_create(
             user=self,
             defaults={"verification_code": make_password(code), "verification_code_generation_time": timezone.now},
         )
@@ -175,7 +183,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     def add_security_question(self, security_question, security_question_answer):
         encrypted_answer = make_password(security_question_answer)
-        apps.get_model("accounts", "Security").objects.update_or_create(
+        apps.get_model(AUTH_APP_LABEL, "Security").objects.update_or_create(
             user=self,
             defaults={
                 "security_question": security_question,
@@ -201,7 +209,7 @@ class AbstractSecurityQuestion(models.Model):
 
     class Meta:
         abstract = True
-        app_label = "accounts"
+        app_label = AUTH_APP_LABEL
 
     def __str__(self):
         return self.question
@@ -221,7 +229,7 @@ class AbstractSecurity(models.Model):
 
     class Meta:
         abstract = True
-        app_label = "accounts"
+        app_label = AUTH_APP_LABEL
         unique_together = ("user", "security_question")
 
 
@@ -235,7 +243,7 @@ class AbstractPasswordResetLog(models.Model):
 
     class Meta:
         abstract = True
-        app_label = "accounts"
+        app_label = AUTH_APP_LABEL
 
 
 class AbstractFailedSignInAttempt(models.Model):
@@ -247,4 +255,4 @@ class AbstractFailedSignInAttempt(models.Model):
 
     class Meta:
         abstract = True
-        app_label = "accounts"
+        app_label = AUTH_APP_LABEL
