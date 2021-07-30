@@ -1,6 +1,6 @@
 # Properties
 
-## normal
+## unencrypted
 **Type:** `str`
 
 Returns a `str` of unencrypted [JWT][jwt-url] token.
@@ -8,7 +8,7 @@ Returns a `str` of unencrypted [JWT][jwt-url] token.
 ## encrypted
 **Type:** `str`
 
-Returns a `str` of encrypted version of [`normal`](#normal) [JWT][jwt-url] token described above.
+Returns a `str` of encrypted version of [`unencrypted`](#unencrypted) [JWT][jwt-url] token described above.
 
 **NOTE:** `django-rest-xauth`'s authentication class expects this to be the value of a `Authorization` header with
 `Bearer` prefix. For example, `Bearer eyj...`
@@ -16,7 +16,7 @@ Returns a `str` of encrypted version of [`normal`](#normal) [JWT][jwt-url] token
 ## tokens
 **Type:** `dict`
 
-Returns a `dict` of both **normal** and **encrypted** [JWT][jwt-url] tokens.
+Returns a `dict` of both **unencrypted** and **encrypted** [JWT][jwt-url] tokens.
 
 ## checked_claims
 **Type:** `dict`
@@ -37,7 +37,7 @@ token decoding. For example, during authorization when token is provided. `djang
 **Type:** `dict`
 
 Contains a combination of `checked_claims` and additional data payload that will be included in the signed
-[JWT][jwt-url] token returned by [`normal`](#normal).
+[JWT][jwt-url] token returned by [`unencrypted`](#unencrypted).
 
 [jwt-url]: https://jwt.io/
 [jwt-std-claims-url]: https://www.iana.org/assignments/jwt/jwt.xhtml

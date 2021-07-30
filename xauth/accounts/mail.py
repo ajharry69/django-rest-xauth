@@ -3,7 +3,7 @@ import threading
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string, TemplateDoesNotExist
 
-from xauth.internal_settings import *  # noqa
+from xauth.internal_settings import SENDER_ADDRESS, SENDER_ADDRESS_PASSWORD, REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES, APP_NAME
 
 __all__ = ["Mail"]
 

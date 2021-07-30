@@ -60,7 +60,7 @@ class BaseAuthentication(authentication.BaseAuthentication):
         if user.is_active or self._is_activation_endpoint:
             user.device_ip = get_client_ip(request)
             return user
-        raise exceptions.AuthenticationFailed("account was deactivated")
+        raise exceptions.AuthenticationFailed(_("Account was deactivated"), code="account_deactivated")
 
 
 class JWTTokenAuthentication(BaseAuthentication):

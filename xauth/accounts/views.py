@@ -6,14 +6,22 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from xauth.accounts.permissions import IsOwner
-from xauth.accounts.serializers import *  # noqa
+from xauth.accounts.serializers import (
+    SecurityQuestionSerializer,
+    ProfileSerializer,
+    AccountVerificationSerializer,
+    PasswordResetSerializer,
+    AddSecurityQuestionSerializer,
+    AccountActivationSerializer,
+)
+from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = ["AccountViewSet", "SecurityQuestionViewSet"]
 
 
 class SecurityQuestionViewSet(viewsets.ModelViewSet):
     serializer_class = SecurityQuestionSerializer
-    queryset = apps.get_model("accounts", "SecurityQuestion").objects.all()
+    queryset = apps.get_model(AUTH_APP_LABEL, "SecurityQuestion").objects.all()
     permission_classes = [permissions.IsAdminUser]  # TODO: consider superuser only
 
 
@@ -103,5 +111,5 @@ class AccountViewSet(viewsets.ModelViewSet):
             if serializer.is_valid(raise_exception=True) and request.user.activate_account(**serializer.validated_data):
                 return self.retrieve(request, *args, **kwargs)
         except AttributeError:
-            raise AttributeError("Make sure you applied `models.ActivityStatusMixin` to your `settings.AUTH_USER_MODEL`")
+            raise AttributeError("Make sure you applied `models.UserActivationMixin` to your `settings.AUTH_USER_MODEL`")
         return exceptions.ValidationError(_("Wrong security question answer"))

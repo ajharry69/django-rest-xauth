@@ -6,6 +6,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import gettext as _
 
+from xauth.internal_settings import AUTH_APP_LABEL
+
 __all__ = ["UserCreationForm", "UserUpdateForm", "UserAdmin", "SecurityQuestionAdmin"]
 
 
@@ -91,4 +93,4 @@ class SecurityQuestionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(get_user_model(), UserAdmin)
-admin.site.register(apps.get_model("accounts", "SecurityQuestion"), SecurityQuestionAdmin)
+admin.site.register(apps.get_model(AUTH_APP_LABEL, "SecurityQuestion"), SecurityQuestionAdmin)

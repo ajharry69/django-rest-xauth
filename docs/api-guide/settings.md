@@ -15,5 +15,5 @@ You can customize the `django-rest-xauth` default behaviour by providing `XAUTH`
 | `XAUTH_SENDER_ADDRESS` | `settings.EMAIL_HOST_USER` |  |
 | `SENDER_ADDRESS_PASSWORD` | `settings.EMAIL_HOST_PASSWORD` |  |
 | `XAUTH_REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES` | `None` |  |
-| `XAUTH_DATE_INPUT_FORMAT` | `settings.DATE_INPUT_FORMATS[0]` |  |
-| `XAUTH_GENERATE_ENCRYPTED_TOKENS` | `True` |  |
+| `XAUTH_GENERATE_ENCRYPTED_TOKENS` | `True` | Indicates a need to generate encrypted JWT token(s) |
+| `XAUTH_AUTH_APP_LABEL` | `accounts` | Which app should the dependant classes be installed |
