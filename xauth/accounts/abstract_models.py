@@ -40,7 +40,6 @@ def default_is_verified():
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
-    is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=default_is_verified)
 

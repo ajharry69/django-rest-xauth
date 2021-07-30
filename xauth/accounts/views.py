@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login, logout
 from django.utils.translation import gettext as _
 from rest_framework import viewsets, permissions, exceptions
 from rest_framework.decorators import action
@@ -44,8 +44,13 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context().copy()
-        if self.action in ["set_security_question", "retrieve", "list"]:
-            context["remove_fields"] = ["token"]
+        remove_fields = []
+        if self.action in ["update", "partial_update"]:
+            # Password should not be updated using this action. Use `reset_password` instead
+            remove_fields += ["password", "token"]
+        elif self.action in ["set_security_question", "retrieve", "list"]:
+            remove_fields.append("token")
+        context["remove_fields"] = remove_fields
         return context
 
     def retrieve(self, request, *args, **kwargs):
@@ -59,7 +64,13 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     @action(methods=["POST"], detail=False)
     def signin(self, request, *args, **kwargs):
+        login(request, request.user)
         return self.retrieve(request, *args, **kwargs)
+
+    @action(methods=["POST"], detail=True)
+    def signout(self, request, *args, **kwargs):
+        logout(request)
+        return Response()
 
     def do_request_verification_code(self, user):
         user.request_verification(send_mail=True, request=self.request)

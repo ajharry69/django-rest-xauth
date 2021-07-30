@@ -23,13 +23,23 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         for field in self.Meta.model.WRITE_ONLY_FIELDS:
             self.fields[field].write_only = True
 
-        for field in kwargs.pop("context", {}).get("remove_fields") or []:
+        for field in set(kwargs.pop("context", {}).get("remove_fields") or []):
             del self.fields[field]
 
     class Meta:
         model = get_user_model()
         fields = model.serializable_fields() + ("token", "url")
         read_only_fields = model.READ_ONLY_FIELDS
+        extra_kwargs = {
+            "password": dict(style={"input_type": "password"}),
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        instance = super().create(validated_data)
+        instance.set_password(password)
+        instance.save(update_fields=["password"])
+        return instance
 
 
 class PasswordResetSerializer(serializers.Serializer):

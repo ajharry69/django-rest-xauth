@@ -20,7 +20,14 @@ class Migration(migrations.Migration):
                 ("password", models.CharField(max_length=128, verbose_name="password")),
                 ("last_login", models.DateTimeField(blank=True, null=True, verbose_name="last login")),
                 ("email", models.EmailField(db_index=True, max_length=150, unique=True)),
-                ("is_superuser", models.BooleanField(default=False)),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
                 ("is_staff", models.BooleanField(default=False)),
                 ("is_verified", models.BooleanField(default=xauth.accounts.abstract_models.default_is_verified)),
                 (
