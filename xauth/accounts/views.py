@@ -4,17 +4,29 @@ from django.utils.translation import gettext as _
 from rest_framework import viewsets, permissions, exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from xently.core.loading import get_classes, get_class
 
-from xauth.accounts.permissions import IsOwner
-from xauth.accounts.serializers import (
+from xauth.internal_settings import AUTH_APP_LABEL
+
+IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
+(
     SecurityQuestionSerializer,
     ProfileSerializer,
     AccountVerificationSerializer,
     PasswordResetSerializer,
     AddSecurityQuestionSerializer,
     AccountActivationSerializer,
+) = get_classes(
+    f"{AUTH_APP_LABEL}.serializers",
+    [
+        "SecurityQuestionSerializer",
+        "ProfileSerializer",
+        "AccountVerificationSerializer",
+        "PasswordResetSerializer",
+        "AddSecurityQuestionSerializer",
+        "AccountActivationSerializer",
+    ],
 )
-from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = ["AccountViewSet", "SecurityQuestionViewSet"]
 
