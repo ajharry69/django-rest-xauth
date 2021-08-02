@@ -1,4 +1,4 @@
-__all__ = ["REST_FRAMEWORK", "AUTH_USER_MODEL"]
+__all__ = ["REST_FRAMEWORK", "AUTH_USER_MODEL", "XENTLY_DYNAMIC_CLASS_LOADER"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -9,3 +9,5 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = "xauth.User"
+
+XENTLY_DYNAMIC_CLASS_LOADER = "xently.core.loading.default_class_loader"

@@ -6,8 +6,9 @@ from django.utils.translation import gettext as _
 from ipware import get_client_ip
 from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
+from xently.core.loading import get_class
 
-from xauth.accounts.token import Token
+from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = ["JWTTokenAuthentication"]
 
@@ -89,7 +90,7 @@ class JWTTokenAuthentication(BaseAuthentication):
 
     def get_user_from_jwt_token(self, jwt_token):
         try:
-            token = Token(None)
+            token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")(None)
             claims = token.get_claims(token=jwt_token)
             if claims["sub"] != "verification" and self._is_verification_endpoint:
                 raise jwe.JWException

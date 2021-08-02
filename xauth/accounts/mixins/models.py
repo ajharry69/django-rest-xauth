@@ -1,9 +1,11 @@
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from xently.core.loading import get_class
 
-from xauth.accounts.token import Token
-from xauth.internal_settings import ACCOUNT_ACTIVATION_TOKEN_EXPIRY
+from xauth.internal_settings import ACCOUNT_ACTIVATION_TOKEN_EXPIRY, AUTH_APP_LABEL
+
+Token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")
 
 __all__ = ["UserActivationMixin", "NameMixin"]
 

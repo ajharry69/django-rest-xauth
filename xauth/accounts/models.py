@@ -1,3 +1,5 @@
+from xently.core.loading import is_model_registered
+
 from xauth.accounts.abstract_models import (
     AbstractUser,
     AbstractSecurityQuestion,
@@ -5,7 +7,6 @@ from xauth.accounts.abstract_models import (
     AbstractPasswordResetLog,
     AbstractFailedSignInAttempt,
 )
-from xauth.utils import is_model_registered
 from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = []
