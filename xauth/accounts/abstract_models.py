@@ -9,11 +9,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
+from xently.core.loading import get_class
 
 from xauth.accounts import signing_salt
-from xauth.accounts.mail import Mail
-from xauth.accounts.managers import UserManager
-from xauth.accounts.token import Token
 from xauth.internal_settings import (
     ENFORCE_ACCOUNT_VERIFICATION,
     AUTH_APP_LABEL,
@@ -23,6 +21,10 @@ from xauth.internal_settings import (
     PASSWORD_RESET_REQUEST_SUBJECT,
     VERIFICATION_REQUEST_SUBJECT,
 )
+
+Token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")
+UserManager = get_class(f"{AUTH_APP_LABEL}.managers", "UserManager")
+Mail = get_class(f"{AUTH_APP_LABEL}.mail", "Mail")
 
 __all__ = [
     "AbstractUser",

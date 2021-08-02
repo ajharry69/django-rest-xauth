@@ -90,6 +90,7 @@ setuptools.setup(
         "djangorestframework",
         "django-ipware",
         "jwcrypto",
+        "django-xently",
     ],
     include_package_data=True,
     zip_safe=False,
