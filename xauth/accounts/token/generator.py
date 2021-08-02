@@ -70,7 +70,10 @@ class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
         token = self.encrypted if not token else token
         assert token is not None, "Call .refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
-        token = jwt.JWT(key=self.encryption_key, jwt=f"{token}").claims if encrypted else token
+        try:
+            token = jwt.JWT(key=self.encryption_key, jwt=f"{token}").claims if encrypted else token
+        except ValueError:
+            raise jwt.JWException
         return json.loads(jwt.JWT(key=self.get_jwt_signing_keys()[1], jwt=token).claims)
 
     def get_payload(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
