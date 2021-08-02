@@ -1,4 +1,5 @@
 from datetime import timedelta
+from pathlib import Path
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -18,6 +19,9 @@ __all__ = [
     "PASSWORD_RESET_REQUEST_SUBJECT",
     "VERIFICATION_REQUEST_SUBJECT",
     "AUTH_APP_LABEL",
+    "KEYS_DIR",
+    "JWT_SIG_ALG",
+    "MAKE_KEY_DIRS",
 ]
 
 AUTH_APP_LABEL = getattr(settings, "XAUTH_AUTH_APP_LABEL", "accounts")
@@ -33,3 +37,8 @@ SENDER_ADDRESS = getattr(settings, "XAUTH_SENDER_ADDRESS", settings.EMAIL_HOST_U
 SENDER_ADDRESS_PASSWORD = getattr(settings, "XAUTH_SENDER_ADDRESS_PASSWORD", settings.EMAIL_HOST_PASSWORD)
 REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES = getattr(settings, "XAUTH_REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES", None)
 REQUEST_TOKEN_ENCRYPTED = getattr(settings, "XAUTH_GENERATE_ENCRYPTED_TOKENS", True)
+# Create a folder in the root directory of the project to hold generated keys
+# This directory should not be committed to version control
+KEYS_DIR = str(getattr(settings, "XAUTH_KEYS_DIR", Path(settings.BASE_DIR).parent / ".secrets"))
+JWT_SIG_ALG = getattr(settings, "XAUTH_JWT_SIG_ALG", "RS256")
+MAKE_KEY_DIRS = getattr(settings, "XAUTH_MAKE_KEY_DIRS", True)

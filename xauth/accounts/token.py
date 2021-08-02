@@ -8,20 +8,13 @@ from django.utils.datetime_safe import datetime
 from jwcrypto import jwk, jwt
 from jwcrypto.common import json_decode
 
-from xauth.internal_settings import *  # noqa
+from xauth.internal_settings import KEYS_DIR, TOKEN_EXPIRY, REQUEST_TOKEN_ENCRYPTED, JWT_SIG_ALG, MAKE_KEY_DIRS
 
-__all__ = ["JWT_SIG_ALG", "TokenKey", "Token"]
-
-# JWT_SIG_ALG = 'HS256'
-JWT_SIG_ALG = "RS256"
+__all__ = ["TokenKey", "Token"]
 
 
 class TokenKey:
     ALLOWED_SIGNING_ALGORITHMS = ["RS256", "HS256"]
-
-    # Create a folder in the root directory of the project to hold generated keys
-    # This directory should not be committed to version control
-    KEYS_ROOT_PATH = str(getattr(settings, "XAUTH_KEYS_DIR", Path(settings.BASE_DIR).parent / ".secrets"))
 
     def __init__(self, password=settings.SECRET_KEY, signing_algorithm=JWT_SIG_ALG):
         self.password = password.encode()
@@ -29,14 +22,50 @@ class TokenKey:
             signing_algorithm in self.__class__.ALLOWED_SIGNING_ALGORITHMS
         ), f"{signing_algorithm} must be one of {self.__class__.ALLOWED_SIGNING_ALGORITHMS}"
         self.signing_algorithm = signing_algorithm
-        Path(self.KEYS_ROOT_PATH).mkdir(parents=True, exist_ok=True)
+        if MAKE_KEY_DIRS:
+            Path(KEYS_DIR).mkdir(parents=True, exist_ok=True)
+
+    def get_or_create_rs_256_key(self, file, key, is_private):
+        password = self.password if is_private else None
+        try:
+            # get key from .pem file contents
+            with open(file, "rb") as pem:
+                key = jwk.JWK.from_pem(pem.read(), password=password)
+        except FileNotFoundError:
+            with open(file, "wb") as pem:
+                # Write the key's to .pem file
+                pem.write(key.export_to_pem(private_key=is_private, password=password))
+        return key
+
+    def get_or_create_hs_256_key(self, file, key):
+        try:
+            with open(file, "rb") as key_file:
+                key = jwk.JWK(**json_decode(key_file.readline()))
+        except FileNotFoundError:
+            with open(file, "wb") as key_file:
+                key_file.write(key.export().encode())
+        return key
+
+    def _get_jwt_signing_or_encryption_key(self, is_private=True, is_encryption=False):
+        if is_encryption:
+            file_name, key = "encryption_key", jwk.JWK.generate(kty="EC", alg="ECDH-ES", crv="P-256")
+        else:
+            file_name = "signing_key"
+            key_op = "verify"  # `Public Key` will be used for `verifying` the `token`
+            file_name += "_pub"  # `public` signing key `file name`
+            if is_private:
+                key_op = "sign"  # `Private Key` will be used for `signing` the `token`
+                file_name += "_pri"  # `private` signing key `file name`
+            key = jwk.JWK.generate(kty="RSA", key_ops=key_op, alg="RSA-OAEP", size=2048)
+
+        file_name = md5(file_name.encode(encoding="utf8", errors="replace")).hexdigest()
+        return self.get_or_create_rs_256_key(os.path.join(KEYS_DIR, f"{file_name}.pem"), key, is_private)
 
     @property
     def encryption_key(self):
-        # Generate an encryption key...
-        return self._get_jwt_signing_or_encryption_key(encryption=True)
+        return self._get_jwt_signing_or_encryption_key(is_encryption=True)
 
-    def _jwt_signing_keys(self):
+    def get_jwt_signing_keys(self):
         """
         Return a `JWK` key for `JWT` token encryption or a `tuple` of JWK keys for `JWT` token signing
         (`private` key, `public` key) depending on the signing algorithm used
@@ -44,15 +73,12 @@ class TokenKey:
         """
 
         if self.signing_algorithm == "HS256":
-            # Default signing algorithm used when all else fails
+            # Default signing algorithm used when all else fails.
             # `JWT` signing key
-            try:
-                with open(f"{self.KEYS_ROOT_PATH}/signing_key", "rb") as file:
-                    jwt_sig_key = jwk.JWK(**json_decode(file.readline()))
-            except FileNotFoundError:
-                jwt_sig_key = jwk.JWK(generate="oct", size=256)
-                with open(f"{self.KEYS_ROOT_PATH}/signing_key", "wb") as file:
-                    file.write(jwt_sig_key.export().encode())
+            jwt_sig_key = self.get_or_create_hs_256_key(
+                Path(KEYS_DIR) / md5("signing_key".encode(encoding="utf8", errors="replace")).hexdigest(),
+                jwk.JWK(generate="oct", size=256),
+            )
 
             # Public `JWT` signing key for `JWT` verification
             jwt_pub_sig_key = jwt_sig_key
@@ -66,46 +92,6 @@ class TokenKey:
 
         # Use the same key(private) for **signing** and **verifying** keys...
         return jwt_pri_sig_key, jwt_pri_sig_key or jwt_pub_sig_key
-
-    def _get_key_from_pem(self, file, private):
-        with open(file, "rb") as pem:
-            return jwk.JWK.from_pem(pem.read(), password=self.password if private else None)
-
-    def _get_jwt_signing_or_encryption_key(self, private=True, encryption=False):
-        """
-        Creates a `private` signing or encryption key(s)
-
-        :param private: `bool` to specifying if `key` is `private key`
-        :return: `jwk.JWK` Encryption & signing key
-        """
-
-        file_name, key = self._get_signing_or_encryption_key_or_path(private, encryption)
-        file_name = md5(file_name.encode(encoding="utf8", errors="replace")).hexdigest()
-        file = os.path.join(self.KEYS_ROOT_PATH, f"{file_name}.pem")
-
-        try:
-            # get key from .pem file contents
-            key = self._get_key_from_pem(file, private)
-        except FileNotFoundError:
-            with open(file, "wb") as pem:
-                # Write the key's to .pem file
-                pem.write(key.export_to_pem(private_key=private, password=self.password if private else None))
-            key = self._get_key_from_pem(file, private)
-
-        return key
-
-    @staticmethod
-    def _get_signing_or_encryption_key_or_path(private: bool, encryption: bool):
-        if encryption:
-            return "encryption_key", jwk.JWK.generate(kty="EC", alg="ECDH-ES", crv="P-256")
-
-        file_name = "signing_key"
-        key_op = "verify"  # `Public Key` will be used for `verifying` the `token`
-        file_name += "_pub"  # `public` signing key `file name`
-        if private:
-            key_op = "sign"  # `Private Key` will be used for `signing` the `token`
-            file_name += "_pri"  # `private` signing key `file name`
-        return file_name, jwk.JWK.generate(kty="RSA", key_ops=key_op, alg="RSA-OAEP", size=2048)
 
 
 class Token(TokenKey):
@@ -170,7 +156,7 @@ class Token(TokenKey):
         assert token is not None, "Call .refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
         token = jwt.JWT(key=self.encryption_key, jwt=f"{token}").claims if encrypted else token
-        return json.loads(jwt.JWT(key=self._jwt_signing_keys()[1], jwt=token).claims)
+        return json.loads(jwt.JWT(key=self.get_jwt_signing_keys()[1], jwt=token).claims)
 
     def get_payload(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
         try:
@@ -182,7 +168,7 @@ class Token(TokenKey):
         header = {"alg": self.signing_algorithm, "typ": "JWT"}
         # unencrypted token
         token = jwt.JWT(header, self.claims, check_claims=self.checked_claims, algs=self.ALLOWED_SIGNING_ALGORITHMS)
-        token.make_signed_token(key=self._jwt_signing_keys()[0])
+        token.make_signed_token(key=self.get_jwt_signing_keys()[0])
         self._unencrypted = token.serialize()
         header = {"alg": "ECDH-ES", "enc": "A256GCM"}
         # encrypted token
