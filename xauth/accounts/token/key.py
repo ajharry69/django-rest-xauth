@@ -14,12 +14,12 @@ __all__ = ["TokenKey"]
 class TokenKey:
     ALLOWED_SIGNING_ALGORITHMS = ["RS256", "HS256"]
 
-    def __init__(self, password=settings.SECRET_KEY, signing_algorithm=JWT_SIG_ALG):
-        self.password = password.encode()
+    def __init__(self, password=None, signing_algorithm=None):
+        self.password = (password or settings.SECRET_KEY).encode()
+        self.signing_algorithm = signing_algorithm or JWT_SIG_ALG
         assert (
-            signing_algorithm in self.__class__.ALLOWED_SIGNING_ALGORITHMS
-        ), f"{signing_algorithm} must be one of {self.__class__.ALLOWED_SIGNING_ALGORITHMS}"
-        self.signing_algorithm = signing_algorithm
+            self.signing_algorithm in self.__class__.ALLOWED_SIGNING_ALGORITHMS
+        ), f"{self.signing_algorithm} must be one of {self.__class__.ALLOWED_SIGNING_ALGORITHMS}"
         if MAKE_KEY_DIRS:
             Path(KEYS_DIR).mkdir(parents=True, exist_ok=True)
 

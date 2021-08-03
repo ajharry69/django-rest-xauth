@@ -4,14 +4,14 @@ from django.utils.datetime_safe import datetime
 from jwcrypto import jwt
 from xently.core.loading import get_class
 
-from xauth.internal_settings import TOKEN_EXPIRY, REQUEST_TOKEN_ENCRYPTED, JWT_SIG_ALG, AUTH_APP_LABEL
+from xauth.internal_settings import TOKEN_EXPIRY, REQUEST_TOKEN_ENCRYPTED, AUTH_APP_LABEL
 
 __all__ = ["Token"]
 
 
 class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
     def __init__(self, payload, activation_date=None, expiry_period=None, payload_key=None, subject=None):
-        super().__init__(signing_algorithm=JWT_SIG_ALG)
+        super().__init__()
         self._unencrypted = None
         self._encrypted = None
         self.subject = subject or "access"
