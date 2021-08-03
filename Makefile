@@ -2,7 +2,7 @@ venv_dir ?= .venv
 
 bin_dir ?= $(venv_dir)/bin/
 
-requirements_txt ?= requirements.txt
+requirements_txt ?= requirements-dev.txt
 
 options :=
 
@@ -25,8 +25,8 @@ venv: ## Sets up virtual environment.
 install_requirements: ## Install python requirements.
 	$(bin_dir)pip install -U pip wheel
 	$(bin_dir)pip install --use-feature=in-tree-build -Ur $(requirements_txt)
-	rm -R build || true
-	rm -R django_rest_xauth.egg-info || true
+	rm -Rf build
+	rm -Rf django_rest_xauth.egg-info
 
 dev: venv install_requirements ## Sets up development environment by installing this project's development dependencies within virtual environment.
 	$(bin_dir)pre-commit install --install-hooks

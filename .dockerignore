@@ -2,7 +2,7 @@
 
 !xauth/
 !docker-entrypoint.sh
-!requirements*.txt
+!requirements.txt
 !manage.py
 !settings.py
 !setup.py
