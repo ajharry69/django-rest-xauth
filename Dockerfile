@@ -10,7 +10,8 @@ WORKDIR /app/
 COPY --chown=3000:3000 . ./
 
 RUN apk -U upgrade && \
-    apk add --no-cache libressl-dev musl-dev libffi-devpip install -U pip wheel && \
+    apk add --no-cache libressl-dev musl-dev libffi-dev &&\
+    pip install -U pip wheel && \
     pip install --use-feature=in-tree-build --no-cache-dir -Ur requirements.txt && \
     rm -Rf build && \
 	rm -Rf django_rest_xauth.egg-info && \

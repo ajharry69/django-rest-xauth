@@ -4,7 +4,7 @@ from xauth.settings import *  # noqa
 
 BASE_DIR = Path(__file__).parent
 
-SECRET_KEY = "z%vo6r1n!g-48zt*wg)44k_8hsv_6l2f+ve+u&ut+=pu5dr*a0"
+SECRET_KEY = "django-insecure-bcqq&(&&f=u8v(jt*(iarl7*1(#!gwtpz837ivv355c6y@j6jw"
 
 DEBUG = True
 
