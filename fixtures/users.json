@@ -1,0 +1,13 @@
+[
+  {
+    "model": "xauth.user",
+    "pk": 1,
+    "fields": {
+      "email": "superuser@example.com",
+      "password": "pbkdf2_sha256$260000$X07r6Mypbvhak3ESyFqcHc$5pslbcSWPO/JeN2sg3r/UbTHcdnKoYOn13SRpHGcvbQ=",
+      "is_superuser": true,
+      "is_staff": true,
+      "is_verified": true
+    }
+  }
+]

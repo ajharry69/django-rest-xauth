@@ -1,10 +1,12 @@
 *
 
 !xauth/
+!fixtures/
 !docker-entrypoint.sh
 !requirements.txt
 !manage.py
 !settings.py
 !setup.py
 !urls.py
+!wsgi.py
 !README.md
