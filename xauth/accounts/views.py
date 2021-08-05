@@ -88,6 +88,7 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
         return Response()
 
     def do_request_verification_code(self, user):
+        """This can be overridden to by projects to for example send SMS and/or email"""
         user.request_verification(send_mail=True, request=self.request)
 
     @action(detail=True, url_path="request-verification-code", serializer_class=None)
@@ -103,6 +104,7 @@ class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
         raise exceptions.ValidationError(_("Invalid verification code."))
 
     def do_request_temporary_password(self, user):
+        """This can be overridden to by projects to for example send SMS and/or email"""
         user.request_password_reset(send_mail=True, request=self.request)
 
     @action(detail=True, url_path="request-temporary-password", serializer_class=None)

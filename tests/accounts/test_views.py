@@ -340,3 +340,39 @@ class TestAccountViewSet(APITestCase):
                     "security_question_answer": "answer",
                 },
             )
+
+    def test_requesting_verification_code_with_non_verification_bearer_token(self):
+        user = UserFactory(is_verified=False)
+        response = self.client.get(
+            reverse("user-request-verification-code", kwargs={"pk": user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {user._password_reset_token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["detail"], "Invalid token")
+
+    def test_requesting_verification_code_with_verification_bearer_token(self):
+        user = UserFactory(is_verified=False)
+        response = self.client.get(
+            reverse("user-request-verification-code", kwargs={"pk": user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {user.token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_requesting_temporary_password_with_non_temporary_password_bearer_token(self):
+        response = self.client.get(
+            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user._verification_token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["detail"], "Invalid token")
+
+    def test_requesting_temporary_password_with_temporary_password_bearer_token(self):
+        response = self.client.get(
+            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user._password_reset_token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

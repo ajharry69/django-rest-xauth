@@ -26,38 +26,22 @@ class BaseAuthentication(authentication.BaseAuthentication):
         self.request = request
 
     @cached_property
-    def accounts_view(self):
+    def _auth_view(self):
         return get_class(f"{AUTH_APP_LABEL}.views", "AccountViewSet")(request=self.request)
 
-    @property
-    def _is_verification_endpoint(self):
+    def _is_request_from_any_of(self, url_names):
         try:
-            endpoint = self.accounts_view.reverse_action(
-                self.accounts_view.verify_account.url_name, kwargs=self.accounts_view.request.resolver_match.kwargs
-            )
+            endpoints = [
+                self._auth_view.reverse_action(url_name, kwargs=self._auth_view.request.resolver_match.kwargs)
+                for url_name in url_names
+            ]
         except (Resolver404, NoReverseMatch):
             return False
-        return endpoint == self.request_url_in_lowercase
+        return self.request_url_in_lowercase in endpoints
 
     @property
     def _is_activation_endpoint(self):
-        try:
-            endpoint = self.accounts_view.reverse_action(
-                self.accounts_view.activate_account.url_name, kwargs=self.accounts_view.request.resolver_match.kwargs
-            )
-        except (Resolver404, NoReverseMatch, AttributeError):
-            return False
-        return endpoint == self.request_url_in_lowercase
-
-    @property
-    def _is_password_reset_endpoint(self):
-        try:
-            endpoint = self.accounts_view.reverse_action(
-                self.accounts_view.reset_password.url_name, kwargs=self.accounts_view.request.resolver_match.kwargs
-            )
-        except (Resolver404, NoReverseMatch):
-            return False
-        return endpoint == self.request_url_in_lowercase
+        return self._is_request_from_any_of([self._auth_view.activate_account.url_name])
 
     def _get_wrapped_response(self, request, user):
         if user.is_active or self._is_activation_endpoint:
@@ -94,11 +78,25 @@ class JWTTokenAuthentication(BaseAuthentication):
         try:
             token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")(None)
             claims = token.get_claims(token=jwt_token)
-            if claims["sub"] == "verification" and (not self._is_verification_endpoint):
+            if claims["sub"] == "verification" and (
+                not self._is_request_from_any_of(
+                    [
+                        self._auth_view.verify_account.url_name,
+                        self._auth_view.request_verification_code.url_name,
+                    ]
+                )
+            ):
+                raise jwe.JWException
+            elif claims["sub"] == "password-reset" and (
+                not self._is_request_from_any_of(
+                    [
+                        self._auth_view.reset_password.url_name,
+                        self._auth_view.request_temporary_password.url_name,
+                    ]
+                )
+            ):
                 raise jwe.JWException
             elif claims["sub"] == "activation" and (not self._is_activation_endpoint):
-                raise jwe.JWException
-            elif claims["sub"] == "password-reset" and (not self._is_password_reset_endpoint):
                 raise jwe.JWException
             else:
                 try:
