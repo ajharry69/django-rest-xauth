@@ -2,6 +2,7 @@ import base64
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -155,7 +156,7 @@ class TestAccountViewSet(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn("token", response.data)
 
-    def test_get_user_profile_with_bearer_token_authentication(self):
+    def test_get_user_profile_with_encrypted_bearer_token_authentication(self):
         response = self.client.get(
             path=reverse("user-detail", kwargs={"pk": self.user.pk}),
             HTTP_AUTHORIZATION=f"Bearer {self.user.token.encrypted}",
@@ -164,6 +165,60 @@ class TestAccountViewSet(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data.keys()), 1)
         self.assertNotIn("token", response.data)
+
+    @override_settings(XAUTH_VERIFY_ENCRYPTED_TOKEN=False)
+    def test_get_user_profile_with_expected_unencrypted_bearer_token_authentication(self):
+        response = self.client.get(
+            path=reverse("user-detail", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user.token.unencrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_user_profile_with_unexpected_unencrypted_bearer_token_authentication(self):
+        response = self.client.get(
+            path=reverse("user-detail", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user.token.unencrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_user_profile_with_non_access_bearer_token_authentication(self):
+        response = self.client.get(
+            path=reverse("user-detail", kwargs={"pk": self.user.pk}),
+            HTTP_AUTHORIZATION=f"Bearer {self.user._password_reset_token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["detail"], "Invalid token")
+
+    def test_verify_account_with_verification_bearer_token_authentication(self):
+        user = UserFactory(is_verified=False)
+        valid_code = user.request_verification()
+
+        response = self.client.post(
+            reverse("user-verify-account", kwargs={"pk": user.pk}),
+            data={"code": valid_code},
+            HTTP_AUTHORIZATION=f"Bearer {user.token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        request_user = response.wsgi_request.user
+        self.assertEqual(request_user.token.get_claims(response.data["token"]["encrypted"])["sub"], "access")
+        self.assertTrue(request_user.is_verified)
+
+    def test_verify_account_with_non_verification_bearer_token_authentication(self):
+        user = UserFactory(is_verified=False)
+        valid_code = user.request_verification()
+
+        response = self.client.post(
+            reverse("user-verify-account", kwargs={"pk": user.pk}),
+            data={"code": valid_code},
+            HTTP_AUTHORIZATION=f"Bearer {user._password_reset_token.encrypted}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["detail"], "Invalid token")
 
     def test_verify_account_with_invalid_code(self):
         user = UserFactory(is_verified=False)

@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "email": "superuser@example.com",
-      "password": "pbkdf2_sha256$260000$X07r6Mypbvhak3ESyFqcHc$5pslbcSWPO/JeN2sg3r/UbTHcdnKoYOn13SRpHGcvbQ=",
+      "password": "pbkdf2_sha256$260000$wtUzzCdjy5xPmIAcQ8FcRP$VquFAHkKOVB8/iQrlsPlS0thjFNmM2iOLHgfEjy0w/k=",
       "is_superuser": true,
       "is_staff": true,
       "is_verified": true

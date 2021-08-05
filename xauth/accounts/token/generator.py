@@ -1,10 +1,11 @@
 import json
 
+from django.conf import settings
 from django.utils.datetime_safe import datetime
 from jwcrypto import jwt
 from xently.core.loading import get_class
 
-from xauth.internal_settings import TOKEN_EXPIRY, REQUEST_TOKEN_ENCRYPTED, AUTH_APP_LABEL
+from xauth.internal_settings import TOKEN_EXPIRY, AUTH_APP_LABEL
 
 __all__ = ["Token"]
 
@@ -64,21 +65,29 @@ class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
     def tokens(self):
         if not self.unencrypted or not self.encrypted:
             self.refresh()
-        return {"unencrypted": self.unencrypted, "encrypted": self.encrypted}
+        return {"encrypted": self.encrypted, "unencrypted": self.unencrypted}
 
-    def get_claims(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
-        token = self.encrypted if not token else token
+    def get_claims(self, token=None, is_encrypted=None):
+        if is_encrypted is None:
+            # This setting would have been better read from `internal_settings` module for
+            # documentation and ease of refactor
+            is_encrypted = getattr(settings, "XAUTH_VERIFY_ENCRYPTED_TOKEN", True)
+
+        if token is None:
+            token = self.encrypted if is_encrypted else self.unencrypted
+
         assert token is not None, "Call .refresh() first or provide a token"
         token = token.decode() if isinstance(token, bytes) else token
+
         try:
-            token = jwt.JWT(key=self.encryption_key, jwt=f"{token}").claims if encrypted else token
+            token = jwt.JWT(key=self.encryption_key, jwt=token).claims if is_encrypted else token
         except ValueError:
             raise jwt.JWException
         return json.loads(jwt.JWT(key=self.get_jwt_signing_keys()[1], jwt=token).claims)
 
-    def get_payload(self, token=None, encrypted: bool = REQUEST_TOKEN_ENCRYPTED):
+    def get_payload(self, token=None, is_encrypted=None):
         try:
-            return self.get_claims(token, encrypted).get(self.payload_key, None)
+            return self.get_claims(token, is_encrypted).get(self.payload_key, None)
         except AssertionError:
             return self.payload
 

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 from xauth.internal_settings import AUTH_APP_LABEL
 
-__all__ = ["UserFactory"]
+__all__ = ["UserFactory", "SecurityQuestionFactory"]
 
 
 class UserFactory(factory.django.DjangoModelFactory):

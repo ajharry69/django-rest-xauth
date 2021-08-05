@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from xently.core.loading import get_classes, get_class
 
+from xauth.accounts.mixins import ViewSetBasenameMixin
 from xauth.internal_settings import AUTH_APP_LABEL
 
 IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
@@ -37,7 +38,7 @@ class SecurityQuestionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]  # TODO: consider superuser only
 
 
-class AccountViewSet(viewsets.ModelViewSet):
+class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsOwner]
     queryset = get_user_model().objects.all()

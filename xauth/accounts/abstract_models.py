@@ -16,8 +16,8 @@ from xauth.internal_settings import (
     ENFORCE_ACCOUNT_VERIFICATION,
     AUTH_APP_LABEL,
     ACCESS_TOKEN_EXPIRY,
-    VERIFICATION_CODE_EXPIRY,
-    TEMPORARY_PASSWORD_EXPIRY,
+    ACCOUNT_VERIFICATION_TOKEN_EXPIRY,
+    PASSWORD_RESET_TOKEN_EXPIRY,
     PASSWORD_RESET_REQUEST_SUBJECT,
     VERIFICATION_REQUEST_SUBJECT,
 )
@@ -81,9 +81,9 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def token(self):
         if self.is_verified:
             if hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR):
-                return self.password_reset_token
+                return self._password_reset_token
             return Token(self.token_payload, expiry_period=ACCESS_TOKEN_EXPIRY)
-        return self.verification_token
+        return self._verification_token
 
     @property
     def signed_id(self):
@@ -99,12 +99,12 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             return cls.objects.get(pk=unsigned_id)
 
     @property
-    def verification_token(self):
-        return Token(self.token_payload, expiry_period=VERIFICATION_CODE_EXPIRY, subject="verification")
+    def _verification_token(self):
+        return Token(self.token_payload, expiry_period=ACCOUNT_VERIFICATION_TOKEN_EXPIRY, subject="verification")
 
     @property
-    def password_reset_token(self):
-        return Token(self.token_payload, expiry_period=TEMPORARY_PASSWORD_EXPIRY, subject="password-reset")
+    def _password_reset_token(self):
+        return Token(self.token_payload, expiry_period=PASSWORD_RESET_TOKEN_EXPIRY, subject="password-reset")
 
     def _flag_password_reset(self):
         assert not hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR), "Cannot modify an existing attribute"
