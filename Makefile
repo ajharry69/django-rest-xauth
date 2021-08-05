@@ -1,6 +1,6 @@
 venv_dir ?= .venv
 
-bin_dir ?= $(venv_dir)/bin/
+venv_bin_dir ?= $(venv_dir)/bin/
 
 requirements_txt ?= requirements-dev.txt
 
@@ -16,7 +16,7 @@ options :=
 # where value(s) passed to `test_options` are valid `py.test` options.
 test_options :=
 
-.PHONY: help venv build_image run build_image_and_run install_requirements dev update_repo test test_lint
+.PHONY: help venv build_image run build_image_and_run install_requirements dev test test_lint
 
 help: ## Display this help message.
 	@echo "Please use \`make <target>\` where <target> is one of"
@@ -39,19 +39,17 @@ run:
 build_image_and_run: build_image run
 
 install_requirements: ## Install python requirements.
-	$(bin_dir)pip install -U pip wheel
-	$(bin_dir)pip install --use-feature=in-tree-build -Ur $(requirements_txt)
+	$(venv_bin_dir)pip install -U pip wheel
+	$(venv_bin_dir)pip install --use-feature=in-tree-build --upgrade-strategy=eager -Ur $(requirements_txt)
+	$(venv_bin_dir)pip uninstall -y django-rest-xauth
 	rm -Rf build
 	rm -Rf django_rest_xauth.egg-info
 
 dev: venv install_requirements ## Sets up development environment by installing this project's development dependencies within virtual environment.
-	$(bin_dir)pre-commit install --install-hooks
-
-update_repo: ## Pulls and merges latest changes from git's remote repository.
-	git pull
+	$(venv_bin_dir)pre-commit install --install-hooks
 
 test:
 	py.test $(test_options)
 
 test_lint:
-	$(bin_dir)pre-commit run --all-files --color never
+	$(venv_bin_dir)pre-commit run --all-files --color never
