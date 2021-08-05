@@ -20,10 +20,10 @@ jobs:
           python-version: '3.8'
 
       - name: Install dependencies
-        run: make install_requirements bin_dir='' requirements_txt='requirements-lint.txt'
+        run: make install_requirements venv_bin_dir='' requirements_txt='requirements-lint.txt'
 
       - name: Run lint tests
-        run: make test_lint bin_dir=''
+        run: make test_lint venv_bin_dir=''
 
   test:
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
-        run: make install_requirements bin_dir=''
+        run: make install_requirements venv_bin_dir=''
 
       - name: Run Tests
         run: make test
