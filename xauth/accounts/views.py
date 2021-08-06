@@ -1,12 +1,11 @@
 from django.apps import apps
 from django.contrib.auth import get_user_model, login, logout
 from django.utils.translation import gettext as _
-from rest_framework import viewsets, permissions, exceptions
+from rest_framework import viewsets, permissions, exceptions, routers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xently.core.loading import get_classes, get_class
 
-from xauth.accounts.mixins import ViewSetBasenameMixin
 from xauth.internal_settings import AUTH_APP_LABEL
 
 IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
@@ -38,10 +37,16 @@ class SecurityQuestionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]  # TODO: consider superuser only
 
 
-class AccountViewSet(ViewSetBasenameMixin, viewsets.ModelViewSet):
+class AccountViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsOwner]
     queryset = get_user_model().objects.all()
+
+    def __init__(self, *args, **kwargs):
+        # This can ease calling `view.reverse_action(...)`; where view is an instance of `ViewSet` created
+        # using constructor e.g. `ViewSet(...)`
+        kwargs.setdefault("basename", routers.SimpleRouter().get_default_basename(self.__class__))
+        super().__init__(*args, **kwargs)
 
     def get_queryset(self):
         return get_user_model().objects.filter(pk=self.request.user.pk)

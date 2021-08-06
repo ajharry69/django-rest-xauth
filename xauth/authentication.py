@@ -14,16 +14,9 @@ from xauth.internal_settings import AUTH_APP_LABEL
 __all__ = ["JWTTokenAuthentication"]
 
 
-class BaseAuthentication(authentication.BaseAuthentication):
+class JWTTokenAuthentication(authentication.BaseAuthentication):
     request = None
-    auth_scheme = None
-
-    @property
-    def request_url_in_lowercase(self):
-        return str(self.request.build_absolute_uri()).lower()
-
-    def authenticate(self, request):
-        self.request = request
+    auth_scheme = "Bearer"
 
     @cached_property
     def _auth_view(self):
@@ -37,24 +30,14 @@ class BaseAuthentication(authentication.BaseAuthentication):
             ]
         except (Resolver404, NoReverseMatch):
             return False
-        return self.request_url_in_lowercase in endpoints
+        return self.request.build_absolute_uri() in endpoints
 
     @property
     def _is_activation_endpoint(self):
         return self._is_request_from_any_of([self._auth_view.activate_account.url_name])
 
-    def _get_wrapped_response(self, request, user):
-        if user.is_active or self._is_activation_endpoint:
-            user.device_ip = get_client_ip(request)
-            return user
-        raise exceptions.AuthenticationFailed(_("Account was deactivated"), code="account_deactivated")
-
-
-class JWTTokenAuthentication(BaseAuthentication):
-    auth_scheme = "Bearer"
-
     def authenticate(self, request):
-        super().authenticate(request)
+        self.request = request
 
         header = authentication.get_authorization_header(self.request)
         auth_header_data = header.decode() if isinstance(header, bytes) else header
@@ -68,8 +51,14 @@ class JWTTokenAuthentication(BaseAuthentication):
         if len(authorization_data) > 1:
             if re.match(r"^bearer$", authorization_data[0], flags=re.I):
                 user = self.get_user_from_jwt_token(authorization_data[1])
-                return self._get_wrapped_response(request, user), authorization_data[1] if user else None
-        return None  # unknown/unsupported authentication scheme
+                if user is None:
+                    raise exceptions.AuthenticationFailed(_("Invalid bearer token"), code="invalid_token")
+
+                if user.is_active or self._is_activation_endpoint:
+                    user.device_ip = get_client_ip(request)
+                    return user, authorization_data[1]
+                raise exceptions.AuthenticationFailed(_("Account was deactivated"), code="account_deactivated")
+        return  # unknown/unsupported authentication scheme
 
     def authenticate_header(self, request):
         return "Provide a Bearer <token>"

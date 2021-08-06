@@ -16,6 +16,8 @@ options :=
 # where value(s) passed to `test_options` are valid `py.test` options.
 test_options :=
 
+docker_run_options :=
+
 .PHONY: help venv build_image run build_image_and_run install_requirements dev test test_lint
 
 help: ## Display this help message.
@@ -31,7 +33,7 @@ build_image:
 
 run:
 	docker stop xauth || true
-	docker run --rm -dp $(port):8000 --name=$(image_name) django-rest-xauth:latest
+	docker run --rm -dp $(port):8000 --name=$(image_name) $(docker_run_options) django-rest-xauth:latest
 	docker exec $(image_name) /bin/sh -c "./manage.py collectstatic --noinput"
 	docker exec $(image_name) /bin/sh -c "./manage.py migrate --noinput"
 	docker exec $(image_name) /bin/sh -c "./manage.py loaddata fixtures/users.json"

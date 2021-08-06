@@ -7,6 +7,21 @@
 [![PyPI version](https://badge.fury.io/py/django-rest-xauth.svg)](https://badge.fury.io/py/django-rest-xauth)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-rest-xauth)
 
+## Test run
+
+### With docker
+
+Run `make build_image_and_run`. You can then go to [http://localhost:8000/](http://localhost:8000/) and signin to the
+default user account using `superuser@example.com` as email and `demoproject` as password.
+
+To add extra options to the default `docker run` command, use `docker_run_options` in the make command
+e.g. `make run docker_run_options='-v ./:/app/'`.
+
+### Without docker
+
+After setting up all requirements using `make dev`, start django server as you would in any project
+e.g. `./manage.py runserver`.
+
 ## Documentation
 
 Go [here](docs/index.md#quick-start) for quick-start or [here][documentation-url] for full documentation.
