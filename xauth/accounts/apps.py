@@ -1,5 +1,5 @@
-from xently.config import XentlyAppConfig
+from django import apps
 
 
-class AppConfig(XentlyAppConfig):
+class AppConfig(apps.AppConfig):
     name = "xauth.accounts"
