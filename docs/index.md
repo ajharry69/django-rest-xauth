@@ -20,39 +20,12 @@ abstract class or using the returned code in your views.
 
 - Install package `pip install django-rest-xauth`
 
-- **Optionally** create a new django app in which you'll have
-  your [custom user model][django-customizing-user-model-url] that extends `xauth.accounts.abstract_models.AbstractUser`
+- Run `./manage.py create_xauth_app <path-to-xauth-app>` e.g. `./manage.py create_xauth_app accounts/` and follow
+  further instructions as per the output of the command. _Only run once - during initial setup_.
 
-### Modify project's `settings.py` file
+- Run `./manage.py makemigrations`.
 
-- Add **<path to your new app's `AppConfig`>** to your `INSTALLED_APPS` setting like this
-
-```python
-INSTALLED_APPS = [
-    ...,
-    "xauth.accounts.apps.AppConfig",  # TODO: Should replace with <path to your new app's `AppConfig`>
-    "rest_framework",
-]
-```
-
-- Add/modify your `AUTH_USER_MODEL` setting to
-
-```python
-# Can also be a (modified) direct subclass of `xauth.accounts.models.AbstractUser`
-AUTH_USER_MODEL = "xauth.User"  # TODO: Should replace with your `<new app's label>.<new app's custom user model>`
-```
-
-- Add/modify your `REST_FRAMEWORK` setting to
-
-```python
-from xauth import settings
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"],
-}
-```
-
-- Include the xauth URLconf in your project `urls.py` like this
+- Include xauth `URLconf` in your project's `urls.py` as follows:
 
 ```djangourlpath
 urlpatterns = [
@@ -61,7 +34,7 @@ urlpatterns = [
 ]
 ```
 
-OR, register your own URLs from the `ViewSet`(s) in `xauth.accounts.views` module.
+**OR**, register your own URLs from the `ViewSet`(s) in `xauth.accounts.views` module.
 
 - Run `python manage.py migrate` to create the xauth models.
 - Run `python manage.py createsuperuser` to create a superuser account.
