@@ -220,7 +220,9 @@ class AbstractSecurity(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, related_name="security", on_delete=models.CASCADE, primary_key=True
     )
-    security_question = models.ForeignKey("accounts.SecurityQuestion", on_delete=models.SET_NULL, null=True, blank=True)
+    security_question = models.ForeignKey(
+        f"{AUTH_APP_LABEL}.SecurityQuestion", on_delete=models.SET_NULL, null=True, blank=True
+    )
     security_question_answer = models.CharField(max_length=150, null=True)
     temporary_password = models.CharField(max_length=128, blank=False, null=True)
     verification_code = models.CharField(max_length=128, blank=False, null=True)

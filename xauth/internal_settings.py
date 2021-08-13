@@ -24,7 +24,8 @@ __all__ = [
     "MAKE_KEY_DIRS",
 ]
 
-AUTH_APP_LABEL = getattr(settings, "XAUTH_AUTH_APP_LABEL", "accounts")
+DEFAULT_AUTH_APP_LABEL = "accounts"
+AUTH_APP_LABEL = getattr(settings, "XAUTH_AUTH_APP_LABEL", DEFAULT_AUTH_APP_LABEL)
 APP_NAME = getattr(settings, "XAUTH_EMAIL_APP_NAME", "")
 PASSWORD_RESET_REQUEST_SUBJECT = getattr(settings, "XAUTH_PASSWORD_RESET_REQUEST_SUBJECT", _("Password Reset Request"))
 VERIFICATION_REQUEST_SUBJECT = getattr(settings, "XAUTH_VERIFICATION_REQUEST_SUBJECT", _("Account Verification"))

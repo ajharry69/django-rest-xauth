@@ -11,3 +11,5 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = "xauth.User"
 
 XENTLY_DYNAMIC_CLASS_LOADER = "xauth.loaders.class_loader"
+
+XENTLY_DYNAMIC_CLASS_LOADER_MODULE_PREFIX = "xauth"

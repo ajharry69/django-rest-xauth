@@ -1,19 +1,24 @@
 from xently.core.loading import _find_registered_app_name, _import_module, _pluck_classes
 
+from xauth.internal_settings import AUTH_APP_LABEL, DEFAULT_AUTH_APP_LABEL
+
+__all__ = ["class_loader"]
+
 
 def class_loader(module_label, classnames, module_prefix):
     """
     Dynamically import a list of classes from the given module.
 
     This works by looking up a matching app from the app registry,
-    against the passed module label.  If the requested class can't be found in
+    against the passed module label. If the requested class can't be found in
     the matching module, then we attempt to import it from the corresponding
     xauth app, and if that fails, then the corresponding Oscar core app.
 
     Args:
         module_label (str): Module label comprising the app label and the
             module name, separated by a dot.  For example, 'catalogue.forms'.
-        classname (str): Name of the class to be imported.
+        classnames (list<str>): Name of the classes to be imported.
+        module_prefix (str):
 
     Returns:
         The requested class object or ``None`` if it can't be found
@@ -31,26 +36,19 @@ def class_loader(module_label, classnames, module_prefix):
         # Importing from top-level modules is not supported, e.g.
         raise ValueError("Importing from top-level modules is not supported")
 
-    # First look in xauth
-    xauth_module = _import_module(f"xauth.{module_label}", classnames)
-    # if nothing is there, then look in Oscar itself
-    # e.g. 'oscar.apps.dashboard.catalogue.forms'
-    oscar_module = _import_module(f"{module_prefix}.{module_label}", classnames)
-
-    # returns e.g. 'oscar.apps.dashboard.catalogue',
-    # 'yourproject.apps.dashboard.catalogue' or 'dashboard.catalogue',
-    # depending on what is set in INSTALLED_APPS
+    # returns depends on what is set in `settings.INSTALLED_APPS`
     app_name = _find_registered_app_name(module_label)
     if app_name.startswith(f"{module_prefix}."):
-        # The entry is obviously an Oscar one, we don't import again
+        # The entry is obviously an xauth one, we don't import again
         local_module = None
     else:
-        # Attempt to import the classes from the local module
-        # e.g. 'yourproject.dashboard.catalogue.forms'
-        local_module_label = ".".join(app_name.split(".") + module_label.split(".")[1:])
-        local_module = _import_module(local_module_label, classnames)
+        # Attempt to import the class(es) from the dependant project's module i.e. assumes an override
+        local_module = _import_module(".".join(app_name.split(".") + module_label.split(".")[1:]), classnames)
 
-    if xauth_module is oscar_module is local_module is None:
+    # First look in xauth
+    xauth_module = _import_module(f"xauth.{module_label.replace(AUTH_APP_LABEL, DEFAULT_AUTH_APP_LABEL)}", classnames)
+
+    if xauth_module is local_module is None:
         # This intentionally doesn't raise an ImportError, because ImportError
         # can get masked in complex circular import scenarios.
         raise ModuleNotFoundError(
@@ -60,4 +58,4 @@ def class_loader(module_label, classnames, module_prefix):
         )
 
     # return imported classes, giving preference to ones from the local package
-    return _pluck_classes([local_module, xauth_module, oscar_module], classnames)
+    return _pluck_classes([local_module, xauth_module], classnames)
