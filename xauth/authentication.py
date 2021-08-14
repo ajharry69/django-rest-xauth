@@ -10,10 +10,10 @@ from xently.core.loading import get_class
 
 from xauth.internal_settings import AUTH_APP_LABEL
 
-__all__ = ["JWTTokenAuthentication"]
+__all__ = ["JWTAuthentication"]
 
 
-class JWTTokenAuthentication(authentication.BaseAuthentication):
+class JWTAuthentication(authentication.BaseAuthentication):
     request = None
     auth_scheme = "Bearer"
 
