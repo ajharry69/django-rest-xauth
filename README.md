@@ -7,6 +7,10 @@
 [![PyPI version](https://badge.fury.io/py/django-rest-xauth.svg)](https://badge.fury.io/py/django-rest-xauth)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-rest-xauth)
 
+## Documentation
+
+Go [here](docs/index.md#quick-start) for quick-setup/start or [here][documentation-url] for full documentation.
+
 ## Test run
 
 ### With docker
@@ -21,10 +25,6 @@ e.g. `make run docker_run_options='-v ./:/app/'`.
 
 After setting up all requirements using `make dev`, start django server as you would in any project
 e.g. `./manage.py runserver`.
-
-## Documentation
-
-Go [here](docs/index.md#quick-start) for quick-start or [here][documentation-url] for full documentation.
 
 ## Contributing
 

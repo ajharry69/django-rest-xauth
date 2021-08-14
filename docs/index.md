@@ -25,8 +25,8 @@ abstract class or using the returned code in your views.
   further instructions as per the output of the command. _Only run once - during initial setup_.
 - Run `./manage.py makemigrations`.
 - Include xauth `URLconf` in your project's `urls.py` as
-  follows: `urlpatterns = [path("", include('xauth.urls', namespace='xauth')), ...,]` **OR**, register your own URLs
-  from the `ViewSet`(s) in `xauth.accounts.views` module.
+  follows: `urlpatterns = [path("", include("xauth.urls")), ...,]` **OR**, register your own URLs from the `ViewSet`(s)
+  in `xauth.accounts.views` module.
 - Run `python manage.py migrate` to create the xauth models.
 - Run `python manage.py createsuperuser` to create a superuser account.
 - Run `python manage.py runserver` to start the development server.
