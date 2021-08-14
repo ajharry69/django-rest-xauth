@@ -1,6 +1,7 @@
 from xently.core.loading import _find_registered_app_name, _import_module, _pluck_classes
 
-from xauth.internal_settings import AUTH_APP_LABEL, DEFAULT_AUTH_APP_LABEL
+from xauth.accounts import DEFAULT_AUTH_APP_LABEL
+from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = ["class_loader"]
 

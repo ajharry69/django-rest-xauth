@@ -14,7 +14,6 @@ if not is_model_registered("xauth", "User"):
     class User(AbstractUser):
         class Meta(AbstractUser.Meta):
             swappable = "AUTH_USER_MODEL"
-            app_label = "xauth"
 
     __all__.append("User")
 

@@ -1,2 +1,2 @@
-default_app_config = "xauth.accounts.apps.AppConfig"
-signing_salt = default_app_config
+DEFAULT_AUTH_APP_LABEL = "accounts"
+default_app_config = signing_salt = f"xauth.{DEFAULT_AUTH_APP_LABEL}.apps.AppConfig"

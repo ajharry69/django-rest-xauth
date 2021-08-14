@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from xauth.internal_settings import DEFAULT_AUTH_APP_LABEL
+from xauth.accounts import DEFAULT_AUTH_APP_LABEL
 
 
 def create_file(filepath, content=""):
@@ -107,10 +107,10 @@ from xauth.accounts.models import *  # noqa isort:skip
 Make the following changes in your project's settings module - where you've defined django settings:
     1. Add "{local_app_name}.apps.AppConfig" and "rest_framework" to INSTALLED_APPS.
     2. Add 'xauth.settings import *  # noqa'
-    3. Add 'AUTH_USER_MODEL = "{app_label}.User"'
     """
             if app_label != DEFAULT_AUTH_APP_LABEL:
-                message += f"4. Add 'XAUTH_AUTH_APP_LABEL = \"{app_label}\"'"
+                message += f"""3. Add 'AUTH_USER_MODEL = "{app_label}.User"'
+    4. Add 'XAUTH_AUTH_APP_LABEL = \"{app_label}\"'"""
             self.stdout.write(self.style.SUCCESS(message))
         except Exception as e:
             raise CommandError(str(e))
