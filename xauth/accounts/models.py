@@ -4,8 +4,6 @@ from xauth.accounts.abstract_models import (
     AbstractUser,
     AbstractSecurityQuestion,
     AbstractSecurity,
-    AbstractPasswordResetLog,
-    AbstractFailedSignInAttempt,
 )
 from xauth.internal_settings import AUTH_APP_LABEL
 
@@ -33,17 +31,3 @@ if not is_model_registered(AUTH_APP_LABEL, "Security"):
         pass
 
     __all__.append("Security")
-
-if not is_model_registered(AUTH_APP_LABEL, "PasswordResetLog"):
-
-    class PasswordResetLog(AbstractPasswordResetLog):
-        pass
-
-    __all__.append("PasswordResetLog")
-
-if not is_model_registered(AUTH_APP_LABEL, "FailedSignInAttempt"):
-
-    class FailedSignInAttempt(AbstractFailedSignInAttempt):
-        pass
-
-    __all__.append("FailedSignInAttempt")
