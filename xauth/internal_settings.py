@@ -40,6 +40,6 @@ REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES = getattr(settings, "XAUTH_REPLY_TO_ACCOUNTS_E
 VERIFY_ENCRYPTED_TOKEN = getattr(settings, "XAUTH_VERIFY_ENCRYPTED_TOKEN", True)
 # Create a folder in the root directory of the project to hold generated keys
 # This directory should not be committed to version control
-KEYS_DIR = str(getattr(settings, "XAUTH_KEYS_DIR", Path(settings.BASE_DIR).parent / ".secrets"))
+KEYS_DIR = str(getattr(settings, "XAUTH_KEYS_DIR", Path(settings.BASE_DIR) / ".secrets"))
 JWT_SIG_ALG = getattr(settings, "XAUTH_JWT_SIG_ALG", "RS256")
 MAKE_KEY_DIRS = getattr(settings, "XAUTH_MAKE_KEY_DIRS", True)
