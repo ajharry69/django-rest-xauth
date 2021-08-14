@@ -18,24 +18,15 @@ abstract class or using the returned code in your views.
 
 ## Quick start
 
-- Install package `pip install django-rest-xauth`
-
+- Install package `pip install django-rest-xauth`.
+- Add `xauth.apps.AppConfig` to `INSTALLED_APPS` setting. This will expose the management command used in next step - it
+  will not be necessary after that. Therefore, it can be uninstalled/removed safely from `INSTALLED_APPS`.
 - Run `./manage.py create_xauth_app <path-to-xauth-app>` e.g. `./manage.py create_xauth_app accounts/` and follow
   further instructions as per the output of the command. _Only run once - during initial setup_.
-
 - Run `./manage.py makemigrations`.
-
-- Include xauth `URLconf` in your project's `urls.py` as follows:
-
-```djangourlpath
-urlpatterns = [
-    path("", include('xauth.urls', namespace='xauth')),
-    ...,
-]
-```
-
-**OR**, register your own URLs from the `ViewSet`(s) in `xauth.accounts.views` module.
-
+- Include xauth `URLconf` in your project's `urls.py` as
+  follows: `urlpatterns = [path("", include('xauth.urls', namespace='xauth')), ...,]` **OR**, register your own URLs
+  from the `ViewSet`(s) in `xauth.accounts.views` module.
 - Run `python manage.py migrate` to create the xauth models.
 - Run `python manage.py createsuperuser` to create a superuser account.
 - Run `python manage.py runserver` to start the development server.
