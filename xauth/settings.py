@@ -1,4 +1,4 @@
-__all__ = ["REST_FRAMEWORK", "AUTH_USER_MODEL", "XENTLY_DYNAMIC_CLASS_LOADER"]
+__all__ = ["REST_FRAMEWORK", "XENTLY_DYNAMIC_CLASS_LOADER", "XENTLY_DYNAMIC_CLASS_LOADER_MODULE_PREFIX"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -7,8 +7,6 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ],
 }
-
-AUTH_USER_MODEL = "xauth.User"
 
 XENTLY_DYNAMIC_CLASS_LOADER = "xauth.loaders.class_loader"
 
