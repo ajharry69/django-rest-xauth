@@ -30,8 +30,6 @@ __all__ = [
     "AbstractUser",
     "AbstractSecurity",
     "AbstractSecurityQuestion",
-    "AbstractFailedSignInAttempt",
-    "AbstractPasswordResetLog",
     "default_is_verified",
 ]
 
@@ -41,13 +39,9 @@ def default_is_verified():
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
-    is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=default_is_verified)
 
     objects = UserManager()
-
-    USERNAME_FIELD = EMAIL_FIELD = "email"  # returned by get_email_field_name()
 
     # all the fields listed here(including the USERNAME_FIELD and password) are
     # expected as part of parameters in `objects`(UserManager).create_superuser
@@ -55,13 +49,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     # Contains a tuple of fields that are "safe" to access publicly with proper
     # caution taken for modification
-    READ_ONLY_FIELDS = ("is_superuser", "is_staff", "is_verified")
+    READ_ONLY_FIELDS = ("is_superuser", "is_verified")
 
     WRITE_ONLY_FIELDS = ("password",)
 
-    VERIFICATION_CODE_LENGTH = 6
-
-    TEMPORARY_PASSWORD_LENGTH = 8
+    VERIFICATION_CODE_LENGTH, TEMPORARY_PASSWORD_LENGTH = 6, 8
 
     _PASSWORD_RESET_REQUEST_FLAG_ATTR = "requested_password_reset"
 
@@ -71,11 +63,15 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     @classmethod
     def serializable_fields(cls):
-        return ("email",) + cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
+        return cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
 
     @classmethod
     def admin_panel_fields(cls):
-        return ("email",)
+        return tuple()
+
+    @classmethod
+    def get_password_reset_lookup_fields(cls):
+        return [cls.get_email_field_name()]
 
     @property
     def token(self):
@@ -96,7 +92,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         except signing.BadSignature:
             pass
         else:
-            return cls.objects.get(pk=unsigned_id)
+            return cls._default_manager.get(pk=unsigned_id)
 
     @property
     def _verification_token(self):
@@ -107,7 +103,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         return Token(self.token_payload, expiry_period=PASSWORD_RESET_TOKEN_EXPIRY, subject="password-reset")
 
     def _flag_password_reset(self):
-        assert not hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR), "Cannot modify an existing attribute"
+        assert not hasattr(
+            self,
+            self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR,
+        ), "Cannot modify an existing attribute"
         setattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR, True)
 
     def unflag_password_reset(self):
@@ -122,7 +121,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         apps.get_model(AUTH_APP_LABEL, "Security").objects.update_or_create(
             user=self,
-            defaults={"temporary_password": make_password(password), "temporary_password_generation_time": timezone.now},
+            defaults={
+                "temporary_password": make_password(password),
+                "temporary_password_generation_time": timezone.now,
+            },
         )
 
         self._flag_password_reset()
@@ -142,7 +144,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         apps.get_model(AUTH_APP_LABEL, "Security").objects.update_or_create(
             user=self,
-            defaults={"verification_code": make_password(code), "verification_code_generation_time": timezone.now},
+            defaults={
+                "verification_code": make_password(code),
+                "verification_code_generation_time": timezone.now,
+            },
         )
 
         if kwargs.copy().pop("send_email", False):
@@ -156,7 +161,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         validate_password(raw_password, user=self)
         super().set_password(raw_password)
 
-    def reset_password(self, old_password, new_password, is_change=False):
+    def reset_password(self, old_password, new_password, is_change=False) -> bool:
         try:
             matched = check_password(old_password, self.password if is_change else self.security.temporary_password)
         except ObjectDoesNotExist:
@@ -169,7 +174,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     reset_password.alters_data = True
 
-    def verify(self, code):
+    def verify(self, code) -> bool:
         try:
             matched = check_password(code, self.security.verification_code)
         except ObjectDoesNotExist:
@@ -195,6 +200,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     add_security_question.alters_data = True
 
     def _send_email(self, template_name, context=None, subject=None, **kwargs):
+        if not hasattr(self, "email"):
+            return
         context = context if context else {}
         context["user"] = self
         Mail(subject=subject).add_recipient(self.email).send(template_name=template_name, context=context, **kwargs)
@@ -234,28 +241,3 @@ class AbstractSecurity(models.Model):
         abstract = True
         app_label = AUTH_APP_LABEL
         unique_together = ("user", "security_question")
-
-
-class AbstractPasswordResetLog(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="password_reset", on_delete=models.CASCADE)
-    type = models.CharField(choices=[("Reset", 1), ("Change", 2)], max_length=10, default=2)
-    request_ip = models.GenericIPAddressField(db_index=True, unpack_ipv4=True, blank=True, null=True)
-    change_ip = models.GenericIPAddressField(db_index=True, unpack_ipv4=True, blank=True, null=True)
-    request_time = models.DateTimeField(default=timezone.now)
-    change_time = models.DateTimeField(blank=False, null=True)
-
-    class Meta:
-        abstract = True
-        app_label = AUTH_APP_LABEL
-
-
-class AbstractFailedSignInAttempt(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="signin_attempts", on_delete=models.CASCADE)
-    device_ip = models.GenericIPAddressField(db_index=True, unpack_ipv4=True, blank=True, null=True)
-    attempt_date = models.DateField(default=timezone.now)
-    attempt_count = models.IntegerField(default=1)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
-        app_label = AUTH_APP_LABEL

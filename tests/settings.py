@@ -80,5 +80,3 @@ REST_FRAMEWORK.update(
         "TEST_REQUEST_DEFAULT_FORMAT": "json",
     }
 )
-
-AUTH_USER_MODEL = "xauth.User"

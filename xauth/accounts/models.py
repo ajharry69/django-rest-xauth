@@ -1,11 +1,10 @@
+from django.db import models
 from xently.core.loading import is_model_registered
 
 from xauth.accounts.abstract_models import (
     AbstractUser,
     AbstractSecurityQuestion,
     AbstractSecurity,
-    AbstractPasswordResetLog,
-    AbstractFailedSignInAttempt,
 )
 from xauth.internal_settings import AUTH_APP_LABEL
 
@@ -16,7 +15,18 @@ if not is_model_registered("xauth", "User"):
     class User(AbstractUser):
         class Meta(AbstractUser.Meta):
             swappable = "AUTH_USER_MODEL"
-            app_label = "xauth"
+
+        email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
+
+        USERNAME_FIELD = EMAIL_FIELD = "email"  # returned by get_email_field_name()
+
+        @classmethod
+        def serializable_fields(cls):
+            return ("email",) + super().serializable_fields()
+
+        @classmethod
+        def admin_panel_fields(cls):
+            return ("email",) + super().admin_panel_fields()
 
     __all__.append("User")
 
@@ -33,17 +43,3 @@ if not is_model_registered(AUTH_APP_LABEL, "Security"):
         pass
 
     __all__.append("Security")
-
-if not is_model_registered(AUTH_APP_LABEL, "PasswordResetLog"):
-
-    class PasswordResetLog(AbstractPasswordResetLog):
-        pass
-
-    __all__.append("PasswordResetLog")
-
-if not is_model_registered(AUTH_APP_LABEL, "FailedSignInAttempt"):
-
-    class FailedSignInAttempt(AbstractFailedSignInAttempt):
-        pass
-
-    __all__.append("FailedSignInAttempt")

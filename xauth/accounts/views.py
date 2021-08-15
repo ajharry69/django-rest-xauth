@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from xently.core.loading import get_classes, get_class
 
+from xauth.authentication import PasswordResetRequestAuthentication
 from xauth.internal_settings import AUTH_APP_LABEL
 
 IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
@@ -14,6 +15,7 @@ IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
     ProfileSerializer,
     AccountVerificationSerializer,
     PasswordResetSerializer,
+    PasswordResetRequestSerializer,
     AddSecurityQuestionSerializer,
     AccountActivationSerializer,
 ) = get_classes(
@@ -23,6 +25,7 @@ IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
         "ProfileSerializer",
         "AccountVerificationSerializer",
         "PasswordResetSerializer",
+        "PasswordResetRequestSerializer",
         "AddSecurityQuestionSerializer",
         "AccountActivationSerializer",
     ],
@@ -54,6 +57,9 @@ class AccountViewSet(viewsets.ModelViewSet):
     def get_object(self):
         lookup_key = self.lookup_url_kwarg or self.lookup_field
         if lookup_key not in self.kwargs or self.action == "request_temporary_password":
+            # When requesting a temporary password, a persisted (i.e. references the same) user instance is
+            # required to signal the generation of the password reset token. Therefore our best bet is on
+            # the user object from the request
             obj = self.request.user
             self.check_object_permissions(self.request, obj)
         else:
@@ -112,8 +118,17 @@ class AccountViewSet(viewsets.ModelViewSet):
         """This can be overridden to by projects to for example send SMS and/or email"""
         user.request_password_reset(send_mail=True, request=self.request)
 
-    @action(detail=True, url_path="request-temporary-password", serializer_class=None)
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="request-temporary-password",
+        serializer_class=PasswordResetRequestSerializer,
+        authentication_classes=[PasswordResetRequestAuthentication],
+    )
     def request_temporary_password(self, request, *args, **kwargs):
+        lookup_kwarg_value = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
+        if type(lookup_kwarg_value)(getattr(request.user, self.lookup_field)) != lookup_kwarg_value:
+            raise exceptions.PermissionDenied
         self.do_request_temporary_password(request.user)
         response = self.retrieve(request, *args, **kwargs)
         request.user.unflag_password_reset()
@@ -128,7 +143,10 @@ class AccountViewSet(viewsets.ModelViewSet):
         raise exceptions.ValidationError(_(f"Invalid {'old' if is_change else 'temporary'} password."))
 
     @action(
-        methods=["POST"], detail=True, url_path="set-security-question", serializer_class=AddSecurityQuestionSerializer
+        detail=True,
+        methods=["POST"],
+        url_path="set-security-question",
+        serializer_class=AddSecurityQuestionSerializer,
     )
     def set_security_question(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

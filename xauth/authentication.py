@@ -4,17 +4,27 @@ from django.contrib.auth import get_user_model
 from django.urls.exceptions import Resolver404, NoReverseMatch
 from django.utils.functional import cached_property
 from django.utils.translation import gettext as _
-from ipware import get_client_ip
 from jwcrypto import jwt, jwe
 from rest_framework import authentication, exceptions
 from xently.core.loading import get_class
 
 from xauth.internal_settings import AUTH_APP_LABEL
 
-__all__ = ["JWTTokenAuthentication"]
+__all__ = ["JWTAuthentication", "PasswordResetRequestAuthentication"]
 
 
-class JWTTokenAuthentication(authentication.BaseAuthentication):
+class PasswordResetRequestAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        filter_kwargs = request.data.copy()
+        for field_name in request.data:
+            if field_name not in get_user_model().get_password_reset_lookup_fields():
+                del filter_kwargs[field_name]
+
+        user = get_user_model()._default_manager.filter(**filter_kwargs).first()
+        return user, request.data if user else None
+
+
+class JWTAuthentication(authentication.BaseAuthentication):
     request = None
     auth_scheme = "Bearer"
 
@@ -55,7 +65,6 @@ class JWTTokenAuthentication(authentication.BaseAuthentication):
                     raise exceptions.AuthenticationFailed(_("Invalid bearer token"), code="invalid_token")
 
                 if user.is_active or self._is_activation_endpoint:
-                    user.device_ip = get_client_ip(request)
                     return user, authorization_data[1]
                 raise exceptions.AuthenticationFailed(_("Account was deactivated"), code="account_deactivated")
         return  # unknown/unsupported authentication scheme
