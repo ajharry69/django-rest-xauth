@@ -39,13 +39,9 @@ def default_is_verified():
 
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
-    is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=default_is_verified)
 
     objects = UserManager()
-
-    USERNAME_FIELD = EMAIL_FIELD = "email"  # returned by get_email_field_name()
 
     # all the fields listed here(including the USERNAME_FIELD and password) are
     # expected as part of parameters in `objects`(UserManager).create_superuser
@@ -53,13 +49,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     # Contains a tuple of fields that are "safe" to access publicly with proper
     # caution taken for modification
-    READ_ONLY_FIELDS = ("is_superuser", "is_staff", "is_verified")
+    READ_ONLY_FIELDS = ("is_superuser", "is_verified")
 
     WRITE_ONLY_FIELDS = ("password",)
 
-    VERIFICATION_CODE_LENGTH = 6
-
-    TEMPORARY_PASSWORD_LENGTH = 8
+    VERIFICATION_CODE_LENGTH, TEMPORARY_PASSWORD_LENGTH = 6, 8
 
     _PASSWORD_RESET_REQUEST_FLAG_ATTR = "requested_password_reset"
 
@@ -69,11 +63,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     @classmethod
     def serializable_fields(cls):
-        return ("email",) + cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
+        return cls.WRITE_ONLY_FIELDS + cls.READ_ONLY_FIELDS
 
     @classmethod
     def admin_panel_fields(cls):
-        return ("email",)
+        return tuple()
 
     @property
     def token(self):
@@ -202,6 +196,8 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     add_security_question.alters_data = True
 
     def _send_email(self, template_name, context=None, subject=None, **kwargs):
+        if not hasattr(self, "email"):
+            return
         context = context if context else {}
         context["user"] = self
         Mail(subject=subject).add_recipient(self.email).send(template_name=template_name, context=context, **kwargs)

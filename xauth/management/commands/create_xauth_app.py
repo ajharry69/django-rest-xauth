@@ -83,11 +83,25 @@ class AppConfig(apps.AppConfig):
             self.stdout.write(self.style.WARNING("Creating models.py..."))
             create_file(
                 join(local_app_folder_path, "models.py"),
-                f"""from xauth.accounts import abstract_models
+                f"""from django.db import models
+
+from xauth.accounts import abstract_models
 
 
 class User(abstract_models.AbstractUser):
-    pass
+    email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
+
+    EMAIL_FIELD = "email"  # returned by `self.get_email_field_name()`
+
+    USERNAME_FIELD = EMAIL_FIELD
+
+    @classmethod
+    def serializable_fields(cls):
+        return ("email",) + super().serializable_fields()
+
+    @classmethod
+    def admin_panel_fields(cls):
+        return ("email",) + super().admin_panel_fields()
 
 
 # TODO: Add other model overrides here...
