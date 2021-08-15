@@ -8,6 +8,7 @@ from xauth.internal_settings import AUTH_APP_LABEL
 __all__ = [
     "ProfileSerializer",
     "PasswordResetSerializer",
+    "PasswordResetRequestSerializer",
     "SecurityQuestionSerializer",
     "AccountVerificationSerializer",
     "AccountActivationSerializer",
@@ -46,6 +47,13 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         instance.set_password(password)
         instance.save(update_fields=["password"])
         return instance
+
+
+class PasswordResetRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = model.get_password_reset_lookup_fields()
+        extra_kwargs = {field_name: dict(write_only=True) for field_name in fields}
 
 
 class PasswordResetSerializer(serializers.Serializer):

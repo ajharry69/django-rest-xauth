@@ -10,7 +10,18 @@ from xently.core.loading import get_class
 
 from xauth.internal_settings import AUTH_APP_LABEL
 
-__all__ = ["JWTAuthentication"]
+__all__ = ["JWTAuthentication", "PasswordResetRequestAuthentication"]
+
+
+class PasswordResetRequestAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        filter_kwargs = request.data.copy()
+        for field_name in request.data:
+            if field_name not in get_user_model().get_password_reset_lookup_fields():
+                del filter_kwargs[field_name]
+
+        user = get_user_model()._default_manager.filter(**filter_kwargs).first()
+        return user, request.data if user else None
 
 
 class JWTAuthentication(authentication.BaseAuthentication):

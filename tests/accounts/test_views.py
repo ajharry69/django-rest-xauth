@@ -127,22 +127,6 @@ class TestAccountViewSet(APITestCase):
         assert user == response.wsgi_request.user  # TODO: Use testcase's assertion methods
         self.assertEqual(response.wsgi_request.user.token.subject, "verification")
 
-    def test_request_temporary_password_requires_authentication(self):
-        response = self.client.post(reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}))
-
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_request_temporary_password_returns_password_reset_token(self):
-        self.client.force_login(self.user)
-        response = self.client.get(reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("token", response.data)
-        self.assertEqual(self.user, response.wsgi_request.user)
-        self.assertEqual(
-            response.wsgi_request.user.token.get_claims(response.data["token"]["encrypted"])["sub"], "password-reset"
-        )
-
     def test_get_user_profile_must_match_id_in_authorization_header_and_url_look_kwarg(self):
         user = UserFactory()
         self.client.force_login(self.user)
@@ -360,19 +344,32 @@ class TestAccountViewSet(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_requesting_temporary_password_with_non_temporary_password_bearer_token(self):
-        response = self.client.get(
+    def test_requesting_temporary_password_without_authentication_credentials(self):
+        response = self.client.post(
             reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
-            HTTP_AUTHORIZATION=f"Bearer {self.user._verification_token.encrypted}",
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data["detail"], "Invalid token")
-
-    def test_requesting_temporary_password_with_temporary_password_bearer_token(self):
-        response = self.client.get(
-            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
-            HTTP_AUTHORIZATION=f"Bearer {self.user._password_reset_token.encrypted}",
+            data={"email": self.user.email},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("token", response.data)
+        self.assertEqual(self.user, response.wsgi_request.user)
+        self.assertEqual(
+            response.wsgi_request.user.token.get_claims(response.data["token"]["encrypted"])["sub"], "password-reset"
+        )
+
+    def test_requesting_temporary_password_with_invalid_lookup_field_value(self):
+        response = self.client.post(
+            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
+            data={"email": f"modified.{self.user.email}"},
+        )
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_requesting_temporary_password_with_unmatching_lookup_field_value_and_url_kwarg(self):
+        user = UserFactory()
+        response = self.client.post(
+            reverse("user-request-temporary-password", kwargs={"pk": user.pk}),
+            data={"email": self.user.email},
+        )
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)

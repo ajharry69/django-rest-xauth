@@ -69,6 +69,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     def admin_panel_fields(cls):
         return tuple()
 
+    @classmethod
+    def get_password_reset_lookup_fields(cls):
+        return [cls.get_email_field_name()]
+
     @property
     def token(self):
         if self.is_verified:
@@ -88,7 +92,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         except signing.BadSignature:
             pass
         else:
-            return cls.objects.get(pk=unsigned_id)
+            return cls._default_manager.get(pk=unsigned_id)
 
     @property
     def _verification_token(self):
