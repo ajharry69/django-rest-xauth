@@ -15,7 +15,7 @@ if not is_model_registered("xauth", "User"):
     class User(AbstractUser):
         class Meta(AbstractUser.Meta):
             swappable = "AUTH_USER_MODEL"
-            app_label = "AUTH_APP_LABEL"
+            app_label = "AUTH_APP_LABEL1"
 
         email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
 

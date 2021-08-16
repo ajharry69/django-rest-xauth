@@ -1,6 +1,6 @@
 [
   {
-    "model": "accounts.user",
+    "model": "accountss.user",
     "pk": 1,
     "fields": {
       "email": "superuser@example.com",
