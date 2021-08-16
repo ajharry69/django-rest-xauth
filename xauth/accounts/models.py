@@ -10,12 +10,11 @@ from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = []
 
-if not is_model_registered("xauth", "User"):
+if not is_model_registered(AUTH_APP_LABEL, "User"):
 
     class User(AbstractUser):
         class Meta(AbstractUser.Meta):
             swappable = "AUTH_USER_MODEL"
-            app_label = "AUTH_APP_LABEL"
 
         email = models.EmailField(db_index=True, max_length=150, blank=False, unique=True)
 
