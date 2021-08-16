@@ -42,4 +42,4 @@ if not is_model_registered(AUTH_APP_LABEL, "Security"):
     class Security(AbstractSecurity):
         pass
 
-    __all__.append("Securit")
+    __all__.append("Security")
