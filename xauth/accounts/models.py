@@ -10,7 +10,7 @@ from xauth.internal_settings import AUTH_APP_LABEL
 
 __all__ = []
 
-if not is_model_registered("xauth", "User"):
+if not is_model_registered(AUTH_APP_LABEL, "User"):
 
     class User(AbstractUser):
         class Meta(AbstractUser.Meta):
