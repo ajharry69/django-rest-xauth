@@ -32,7 +32,6 @@ class UserManager(BaseUserManager):
 
         commit = kwargs.pop("save_record", True)
         user = self.create_user(password=password, save_record=False, **kwargs)
-        user.is_staff = True
         user.is_superuser = True
         user.is_verified = True
         if commit:
