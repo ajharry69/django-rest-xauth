@@ -41,7 +41,7 @@ def default_is_verified():
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=default_is_verified)
-
+    
     objects = UserManager()
 
     # all the fields listed here(including the USERNAME_FIELD and password) are
