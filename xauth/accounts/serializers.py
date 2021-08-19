@@ -1,5 +1,6 @@
 from django.apps import apps
 from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from rest_framework import serializers
 from rest_framework.fields import empty
 
@@ -41,6 +42,7 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
             "password": dict(style={"input_type": "password"}),
         }
 
+    @atomic
     def create(self, validated_data):
         password = validated_data.pop("password")
         instance = super().create(validated_data)
