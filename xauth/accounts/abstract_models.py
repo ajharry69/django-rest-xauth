@@ -5,7 +5,8 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.password_validation import validate_password
 from django.core import signing
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from rest_framework.exceptions import ValidationError as DrfValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -158,7 +159,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
     request_verification.alters_data = True
 
     def set_password(self, raw_password):
-        validate_password(raw_password, user=self)
+        try:
+            validate_password(raw_password, user=self)
+        except ValidationError as error:
+            raise DrfValidationError({"password": error.messages})
         super().set_password(raw_password)
 
     def reset_password(self, old_password, new_password, is_change=False) -> bool:
