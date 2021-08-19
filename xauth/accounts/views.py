@@ -102,7 +102,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         """This can be overridden to by projects to for example send SMS and/or email"""
         user.request_verification(send_mail=True, request=self.request)
 
-    @action(detail=True, url_path="request-verification-code", serializer_class=None)
+    @action(detail=True, url_path="request-verification-code")
     def request_verification_code(self, request, *args, **kwargs):
         self.do_request_verification_code(request.user)
         return self.retrieve(request, *args, **kwargs)
