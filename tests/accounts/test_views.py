@@ -10,6 +10,56 @@ from rest_framework.test import APITestCase
 from tests.factories import UserFactory, SecurityQuestionFactory
 
 
+class TestSecurityQuestionViewSet(APITestCase):
+    def test_adding_security_question_without_staff_privilege(self):
+        self.client.force_login(UserFactory())
+
+        response = self.client.post(
+            reverse("securityquestion-list"),
+            data={
+                "question": "What's your name?",
+            },
+        )
+
+        assert response.status_code == 403
+
+    def test_getting_security_question_without_staff_privilege(self):
+        self.client.force_login(UserFactory())
+
+        response = self.client.get(
+            reverse("securityquestion-list"),
+            data={
+                "question": "What's your name?",
+            },
+        )
+
+        assert response.status_code == 403
+
+    def test_adding_security_question_with_staff_privilege(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+
+        response = self.client.post(
+            reverse("securityquestion-list"),
+            data={
+                "question": "What's your name?",
+            },
+        )
+
+        assert response.status_code == 201
+
+    def test_getting_security_question_with_staff_privilege(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+
+        response = self.client.get(
+            reverse("securityquestion-list"),
+            data={
+                "question": "What's your name?",
+            },
+        )
+
+        assert response.status_code == 200
+
+
 class TestAccountViewSet(APITestCase):
     def setUp(self):
         self.user = UserFactory(is_verified=True)
