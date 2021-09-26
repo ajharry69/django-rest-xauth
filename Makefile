@@ -6,7 +6,11 @@ requirements_txt ?= requirements-dev.txt
 
 port ?= 8000
 
-image_name ?= xauth
+image_host ?= ajharry69/
+
+image_tag ?= 1.0.0
+
+container_name ?= xauth
 
 options :=
 
@@ -18,7 +22,7 @@ test_options :=
 
 docker_run_options :=
 
-.PHONY: help venv build_image run build_image_and_run install_requirements dev test test_lint
+.PHONY: help venv build_image run push_image build_image_and_push stop_container build_image_and_run install_requirements dev test test_lint
 
 help: ## Display this help message.
 	@echo "Please use \`make <target>\` where <target> is one of"
@@ -29,14 +33,21 @@ venv: ## Sets up virtual environment.
 	python3 -m venv $(venv_dir)
 
 build_image:
-	docker build -t django-rest-xauth:latest .
+	docker build -t $(image_host)django-rest-xauth:$(image_tag) -t $(image_host)django-rest-xauth:latest .
 
-run:
-	docker stop xauth || true
-	docker run --rm -dp $(port):8000 --name=$(image_name) $(docker_run_options) django-rest-xauth:latest
-	docker exec $(image_name) /bin/sh -c "./manage.py collectstatic --noinput"
-	docker exec $(image_name) /bin/sh -c "./manage.py migrate --noinput"
-	docker exec $(image_name) /bin/sh -c "./manage.py loaddata fixtures/users.json"
+push_image:
+	docker push -a $(image_host)django-rest-xauth
+
+build_image_and_push: build_image push_image
+
+stop_container:
+	docker stop $(container_name) || true
+
+run: stop_container
+	docker run --rm -dp $(port):8000 --name=$(container_name) $(docker_run_options) $(image_host)django-rest-xauth:latest
+	docker exec $(container_name) /bin/sh -c "./manage.py collectstatic --noinput"
+	docker exec $(container_name) /bin/sh -c "./manage.py migrate --noinput"
+	docker exec $(container_name) /bin/sh -c "./manage.py loaddata fixtures/users.json"
 
 build_image_and_run: build_image run
 
