@@ -2,10 +2,11 @@
 
 !xauth/
 !fixtures/
+!settings/
+settings/local.py
 !docker-entrypoint.sh
 !requirements.txt
 !manage.py
-!settings.py
 !setup.py
 !urls.py
 !wsgi.py

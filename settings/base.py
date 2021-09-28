@@ -3,7 +3,7 @@ from pathlib import Path
 from xauth.settings import *  # noqa
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 XAUTH_KEYS_DIR = BASE_DIR / ".secrets"
 
@@ -14,7 +14,7 @@ XAUTH_KEYS_DIR = BASE_DIR / ".secrets"
 SECRET_KEY = "django-insecure-bcqq&(&&f=u8v(jt*(iarl7*1(#!gwtpz837ivv355c6y@j6jw"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # Application definition
 
