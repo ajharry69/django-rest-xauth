@@ -53,7 +53,7 @@ build_image_and_run: build_image run
 
 install_requirements: ## Install python requirements.
 	$(venv_bin_dir)pip install -U pip wheel
-	$(venv_bin_dir)pip install --use-feature=in-tree-build --upgrade-strategy=eager -Ur $(requirements_txt)
+	$(venv_bin_dir)pip install --upgrade-strategy=eager -Ur $(requirements_txt)
 	$(venv_bin_dir)pip uninstall -y django-rest-xauth
 	rm -Rf build
 	rm -Rf django_rest_xauth.egg-info
