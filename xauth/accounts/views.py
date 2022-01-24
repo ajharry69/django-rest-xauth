@@ -119,16 +119,16 @@ class AccountViewSet(viewsets.ModelViewSet):
         user.request_password_reset(send_mail=True, request=self.request)
 
     @action(
-        detail=True,
+        detail=False,
         methods=["POST"],
         url_path="request-temporary-password",
         serializer_class=PasswordResetRequestSerializer,
         authentication_classes=[PasswordResetRequestAuthentication],
     )
     def request_temporary_password(self, request, *args, **kwargs):
-        lookup_kwarg_value = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
-        if type(lookup_kwarg_value)(getattr(request.user, self.lookup_field)) != lookup_kwarg_value:
-            raise exceptions.PermissionDenied
+        # lookup_kwarg_value = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
+        # if type(lookup_kwarg_value)(getattr(request.user, self.lookup_field)) != lookup_kwarg_value:
+        #     raise exceptions.PermissionDenied
         self.do_request_temporary_password(request.user)
         response = self.retrieve(request, *args, **kwargs)
         request.user.unflag_password_reset()

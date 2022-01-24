@@ -396,7 +396,7 @@ class TestAccountViewSet(APITestCase):
 
     def test_requesting_temporary_password_without_authentication_credentials(self):
         response = self.client.post(
-            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
+            reverse("user-request-temporary-password"),
             data={"email": self.user.email},
         )
 
@@ -409,17 +409,8 @@ class TestAccountViewSet(APITestCase):
 
     def test_requesting_temporary_password_with_invalid_lookup_field_value(self):
         response = self.client.post(
-            reverse("user-request-temporary-password", kwargs={"pk": self.user.pk}),
+            reverse("user-request-temporary-password"),
             data={"email": f"modified.{self.user.email}"},
-        )
-
-        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
-
-    def test_requesting_temporary_password_with_unmatching_lookup_field_value_and_url_kwarg(self):
-        user = UserFactory()
-        response = self.client.post(
-            reverse("user-request-temporary-password", kwargs={"pk": user.pk}),
-            data={"email": self.user.email},
         )
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
