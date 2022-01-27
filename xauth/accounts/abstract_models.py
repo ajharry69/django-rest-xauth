@@ -41,7 +41,7 @@ def default_is_verified():
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=default_is_verified)
-    is_staff = property(lambda self: self.is_superuser)
+    is_staff = property(lambda self: self.is_superuser, lambda self, value: None)
 
     objects = UserManager()
 
