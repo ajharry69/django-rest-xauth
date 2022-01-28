@@ -414,3 +414,29 @@ class TestAccountViewSet(APITestCase):
         )
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_requesting_temporary_password_from_a_bad_request(self):
+        response = self.client.post(
+            reverse("user-request-temporary-password"),
+            data={"first": "email", "second": self.user.email},
+        )
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_requesting_temporary_password_from_a_bad_request_with_valid_authorization_header(self):
+        response = self.client.post(
+            reverse("user-request-temporary-password"),
+            data={"first": "email", "second": self.user.email},
+            HTTP_AUTHORIZATION=f"Bearer {self.user.token.encrypted}",
+        )
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_requesting_temporary_password_from_a_bad_request_with_invalid_authorization_header(self):
+        response = self.client.post(
+            reverse("user-request-temporary-password"),
+            data={"first": "email", "second": self.user.email},
+            HTTP_AUTHORIZATION=f"Bearer {self.user.token.encrypted}",
+        )
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)

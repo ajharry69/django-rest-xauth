@@ -16,12 +16,20 @@ __all__ = ["JWTAuthentication", "PasswordResetRequestAuthentication"]
 class PasswordResetRequestAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         filter_kwargs = request.data.copy()
+        reset_lookup_fields = get_user_model().get_password_reset_lookup_fields()
         for field_name in request.data:
-            if field_name not in get_user_model().get_password_reset_lookup_fields():
+            if field_name not in reset_lookup_fields:
                 del filter_kwargs[field_name]
 
-        user = get_user_model()._default_manager.filter(**filter_kwargs).first()
-        return user, request.data if user else None
+        if set(reset_lookup_fields) != set(filter_kwargs.keys()):
+            return
+
+        try:
+            user = get_user_model()._default_manager.get(**filter_kwargs)
+        except (get_user_model().DoesNotExist, get_user_model().MultipleObjectsReturned):
+            pass
+        else:
+            return user, request.data if user else None
 
 
 class JWTAuthentication(authentication.BaseAuthentication):
