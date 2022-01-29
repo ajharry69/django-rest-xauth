@@ -84,7 +84,12 @@ class AccountViewSet(viewsets.ModelViewSet):
         self.serializer_class = self.__class__.serializer_class
         return super().retrieve(request, *args, **kwargs)
 
-    @action(methods=["POST"], detail=False, permission_classes=[permissions.AllowAny])
+    @action(
+        detail=False,
+        methods=["POST"],
+        authentication_classes=[],
+        permission_classes=[permissions.AllowAny],
+    )
     def signup(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
