@@ -142,7 +142,8 @@ class AccountViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True) and self.request.user.reset_password(**serializer.validated_data):
             return self.retrieve(request, *args, **kwargs)
         is_change = serializer.validated_data["is_change"]
-        raise exceptions.ValidationError(_(f"Invalid {'old' if is_change else 'temporary'} password."))
+        error_message = _(f"Invalid {'old' if is_change else 'temporary'} password.")
+        raise exceptions.ValidationError({"old_password": [error_message]})
 
     @action(
         detail=True,
@@ -163,6 +164,8 @@ class AccountViewSet(viewsets.ModelViewSet):
         try:
             if serializer.is_valid(raise_exception=True) and request.user.activate_account(**serializer.validated_data):
                 return self.retrieve(request, *args, **kwargs)
-        except AttributeError:
-            raise AttributeError("Make sure you applied `models.UserActivationMixin` to your `settings.AUTH_USER_MODEL`")
+        except AttributeError as e:
+            raise AttributeError(
+                "Make sure you applied `models.UserActivationMixin` to your `settings.AUTH_USER_MODEL`"
+            ) from e
         return exceptions.ValidationError(_("Wrong security question answer"))
