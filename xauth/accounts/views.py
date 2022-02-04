@@ -4,12 +4,12 @@ from django.utils.translation import gettext as _
 from rest_framework import viewsets, permissions, exceptions, routers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from xently.core.loading import get_classes, get_class
+from xently.core.loading import get_classes
 
+from xauth.accounts.permissions import IsSuperuser, IsOwner
 from xauth.authentication import PasswordResetRequestAuthentication
 from xauth.internal_settings import AUTH_APP_LABEL
 
-IsOwner = get_class(f"{AUTH_APP_LABEL}.permissions", "IsOwner")
 (
     SecurityQuestionSerializer,
     ProfileSerializer,
@@ -37,7 +37,7 @@ __all__ = ["AccountViewSet", "SecurityQuestionViewSet"]
 class SecurityQuestionViewSet(viewsets.ModelViewSet):
     serializer_class = SecurityQuestionSerializer
     queryset = apps.get_model(AUTH_APP_LABEL, "SecurityQuestion").objects.all()
-    permission_classes = [permissions.IsAdminUser]  # TODO: consider superuser only
+    permission_classes = [IsSuperuser]
 
 
 class AccountViewSet(viewsets.ModelViewSet):
