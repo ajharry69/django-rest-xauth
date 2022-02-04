@@ -33,7 +33,7 @@ class TestSecurityQuestionViewSet(APITestCase):
             },
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 200
 
     def test_adding_security_question_with_staff_privilege(self):
         self.client.force_login(UserFactory(is_superuser=True))
