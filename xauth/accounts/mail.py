@@ -31,11 +31,11 @@ class Mail:
             to=self._recipients,
             from_email=self._sender,
             reply_to=self._reply_to,
-            body=render_to_string(f"accounts/{template_name}.txt", context=context, request=request),
+            body=render_to_string(f"xauth/{template_name}.txt", context=context, request=request),
             connection=get_connection(username=self._sender, password=self._sender_password),
         )
         try:
-            html = render_to_string(f"accounts/{template_name}.html", context=context, request=request)
+            html = render_to_string(f"xauth/{template_name}.html", context=context, request=request)
             mail.attach_alternative(html, "text/html")
         except TemplateDoesNotExist:
             pass

@@ -130,9 +130,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         self._flag_password_reset()
 
-        if kwargs.copy().pop("send_email", False):
-            kwargs.setdefault("subject", PASSWORD_RESET_REQUEST_SUBJECT)
-            self._send_email("email-request-password-reset", {"password": password}, **kwargs)
+        new_kwargs = kwargs.copy()
+        if new_kwargs.pop("send_email", False):
+            new_kwargs.setdefault("subject", PASSWORD_RESET_REQUEST_SUBJECT)
+            self._send_email("email-request-password-reset", {"password": password}, **new_kwargs)
         return password
 
     request_password_reset.alters_data = True
@@ -151,9 +152,10 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             },
         )
 
-        if kwargs.copy().pop("send_email", False):
-            kwargs.setdefault("subject", VERIFICATION_REQUEST_SUBJECT)
-            self._send_email("email-request-verification", {"code": code}, **kwargs)
+        new_kwargs = kwargs.copy()
+        if new_kwargs.pop("send_email", False):
+            new_kwargs.setdefault("subject", VERIFICATION_REQUEST_SUBJECT)
+            self._send_email("email-request-verification", {"code": code}, **new_kwargs)
         return code
 
     request_verification.alters_data = True
