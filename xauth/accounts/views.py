@@ -51,6 +51,11 @@ class AccountViewSet(viewsets.ModelViewSet):
         kwargs.setdefault("basename", routers.SimpleRouter().get_default_basename(self.__class__))
         super().__init__(*args, **kwargs)
 
+    def perform_create(self, serializer):
+        obj = serializer.save()
+        if self.action == "signup" and not obj.is_verified:
+            self.do_request_verification_code(obj)
+
     def get_queryset(self):
         return get_user_model().objects.filter(pk=self.request.user.pk)
 
@@ -105,7 +110,7 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def do_request_verification_code(self, user):
         """This can be overridden to by projects to for example send SMS and/or email"""
-        user.request_verification(send_mail=True, request=self.request)
+        user.request_verification(send_email=True, request=self.request)
 
     @action(detail=True, url_path="request-verification-code")
     def request_verification_code(self, request, *args, **kwargs):
@@ -121,7 +126,7 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def do_request_temporary_password(self, user):
         """This can be overridden to by projects to for example send SMS and/or email"""
-        user.request_password_reset(send_mail=True, request=self.request)
+        user.request_password_reset(send_email=True, request=self.request)
 
     @action(
         detail=False,
