@@ -27,9 +27,8 @@ class PasswordResetRequestAuthentication(authentication.BaseAuthentication):
         try:
             user = get_user_model()._default_manager.get(**filter_kwargs)
         except (get_user_model().DoesNotExist, get_user_model().MultipleObjectsReturned):
-            pass
-        else:
-            return user, request.data if user else None
+            raise exceptions.AuthenticationFailed(_('Invalid %(fields)s.') % {"fields": "/".join(filter_kwargs.keys())})
+        return user, request.data if user else None
 
 
 class JWTAuthentication(authentication.BaseAuthentication):
@@ -78,7 +77,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         return  # unknown/unsupported authentication scheme
 
     def authenticate_header(self, request):
-        return "Provide a Bearer <token>"
+        return 'Bearer realm="api"'
 
     def get_user_from_jwt_token(self, jwt_token):
         try:
