@@ -77,7 +77,7 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "djangorestframework",
-        "jwcrypto",
+        "jwcrypto>=1.3,<1.4",
         "django-xently",
     ],
     include_package_data=True,
