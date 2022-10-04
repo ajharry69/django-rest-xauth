@@ -162,10 +162,17 @@ class TestAccountViewSet(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_request_verification_code_requires_authentication(self):
-        response = self.client.post(reverse("user-request-verification-code", kwargs={"pk": self.user.pk}))
+    def test_request_verification_code_does_not_require_authentication(self):
+        user = UserFactory()
+        response = self.client.get(reverse("user-request-verification-code", kwargs={"pk": user.pk}))
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_request_verification_code_for_a_verified_user(self):
+        response = self.client.get(reverse("user-request-verification-code", kwargs={"pk": self.user.pk}))
+
+        self.assertTrue(self.user.is_verified)
+        self.assertEqual(response.status_code, status.HTTP_208_ALREADY_REPORTED)
 
     def test_request_verification_code_returns_verification_token(self):
         user = UserFactory(is_verified=False)
@@ -174,8 +181,8 @@ class TestAccountViewSet(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("token", response.data)
-        assert user == response.wsgi_request.user  # TODO: Use testcase's assertion methods
-        self.assertEqual(response.wsgi_request.user.token.subject, "verification")
+        user.refresh_from_db()
+        self.assertEqual(user.token.subject, "verification")
 
     def test_get_user_profile_must_match_id_in_authorization_header_and_url_look_kwarg(self):
         user = UserFactory()
@@ -382,8 +389,7 @@ class TestAccountViewSet(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {user._password_reset_token.encrypted}",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data["detail"], "Invalid token")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_requesting_verification_code_with_verification_bearer_token(self):
         user = UserFactory(is_verified=False)
