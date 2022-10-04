@@ -1,4 +1,4 @@
-./
+-e ./
 gunicorn
 # Loading static files from filesystem
 whitenoise
