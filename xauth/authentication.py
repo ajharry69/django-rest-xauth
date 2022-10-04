@@ -27,7 +27,7 @@ class PasswordResetRequestAuthentication(authentication.BaseAuthentication):
         try:
             user = get_user_model()._default_manager.get(**filter_kwargs)
         except (get_user_model().DoesNotExist, get_user_model().MultipleObjectsReturned):
-            raise exceptions.AuthenticationFailed(_('Invalid %(fields)s.') % {"fields": "/".join(filter_kwargs.keys())})
+            raise exceptions.AuthenticationFailed(_("Invalid %(fields)s.") % {"fields": "/".join(filter_kwargs.keys())})
         return user, request.data if user else None
 
 

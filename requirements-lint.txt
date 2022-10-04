@@ -1,3 +1,5 @@
-black
+black>=21.12b0,<21.13b0
+# Pin to avoid `ImportError` when running `black`. See https://github.com/psf/black/issues/2964
+click<8.1.0
 pre-commit
 flake8
