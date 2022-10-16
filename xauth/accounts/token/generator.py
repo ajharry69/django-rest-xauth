@@ -38,7 +38,7 @@ class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
 
     @property
     def checked_claims(self):
-        issue_date = timezone.now()
+        issue_date = timezone.now().astimezone()
         self.activation_date = issue_date if not self.activation_date else self.activation_date
         self.expiry_period = TOKEN_EXPIRY if self.expiry_period is None else self.expiry_period
 
