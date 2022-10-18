@@ -2,7 +2,7 @@ from os import environ
 
 from settings.base import *  # noqa
 
-if environ.get("DJANGO_MODE", "production").lower() == "development1":
+if environ.get("DJANGO_MODE", "development").lower() == "development":
     from settings.development import *  # noqa
 else:
     from settings.production import *  # noqa

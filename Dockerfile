@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.10-alpine
 
 ENV PYTHONUNBUFFERED=1
 
@@ -9,7 +9,7 @@ COPY . ./
 RUN apk -U upgrade && \
     apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev cargo && \
     pip install -U pip wheel && \
-    pip install --use-feature=in-tree-build --no-cache-dir -Ur requirements.txt && \
+    pip install --no-cache-dir -Ur requirements.txt && \
     rm -Rf build && \
 	rm -Rf django_rest_xauth.egg-info && \
     apk del gcc musl-dev python3-dev libffi-dev openssl-dev cargo
