@@ -1,3 +1,5 @@
+import threading
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
@@ -6,6 +8,8 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.password_validation import validate_password
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string, TemplateDoesNotExist
 from rest_framework.exceptions import ValidationError as DrfValidationError
 from django.db import models
 from django.utils import timezone
@@ -14,18 +18,17 @@ from xently.core.loading import get_class
 
 from xauth.accounts import signing_salt
 from xauth.internal_settings import (
+    APP_NAME,
     ENFORCE_ACCOUNT_VERIFICATION,
     AUTH_APP_LABEL,
-    ACCESS_TOKEN_EXPIRY,
-    ACCOUNT_VERIFICATION_TOKEN_EXPIRY,
-    PASSWORD_RESET_TOKEN_EXPIRY,
     PASSWORD_RESET_REQUEST_SUBJECT,
     VERIFICATION_REQUEST_SUBJECT,
+    REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES,
+    TOKEN_EXPIRY,
 )
 
 Token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")
 UserManager = get_class(f"{AUTH_APP_LABEL}.managers", "UserManager")
-Mail = get_class(f"{AUTH_APP_LABEL}.mail", "Mail")
 
 __all__ = [
     "AbstractUser",
@@ -79,7 +82,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if self.is_verified:
             if hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR):
                 return self._password_reset_token
-            return Token(self.token_payload, expiry_period=ACCESS_TOKEN_EXPIRY)
+            return Token(self.token_payload, expiry_period=TOKEN_EXPIRY.get("access"))
         return self._verification_token
 
     @property
@@ -97,11 +100,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def _verification_token(self):
-        return Token(self.token_payload, expiry_period=ACCOUNT_VERIFICATION_TOKEN_EXPIRY, subject="verification")
+        return Token(self.token_payload, subject="verification")
 
     @property
     def _password_reset_token(self):
-        return Token(self.token_payload, expiry_period=PASSWORD_RESET_TOKEN_EXPIRY, subject="password-reset")
+        return Token(self.token_payload, subject="password-reset")
 
     def _flag_password_reset(self):
         assert not hasattr(
@@ -124,7 +127,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             user=self,
             defaults={
                 "temporary_password": make_password(password),
-                "temporary_password_generation_time": timezone.now,
+                "temporary_password_generation_time": timezone.localtime if settings.USE_TZ else timezone.now,
             },
         )
 
@@ -148,7 +151,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             user=self,
             defaults={
                 "verification_code": make_password(code),
-                "verification_code_generation_time": timezone.now,
+                "verification_code_generation_time": timezone.localtime if settings.USE_TZ else timezone.now,
             },
         )
 
@@ -210,7 +213,25 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
             return
         context = context if context else {}
         context["user"] = self
-        Mail(subject=subject).add_recipient(self.email).send(template_name=template_name, context=context, **kwargs)
+        context.setdefault("subject", subject)
+        context.setdefault("app_name", APP_NAME)
+
+        request = kwargs.get("request")
+        mail = EmailMultiAlternatives(
+            subject=f"{settings.EMAIL_SUBJECT_PREFIX}{subject}",
+            to=[self.email],
+            reply_to=REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES,
+            body=render_to_string(f"xauth/{template_name}.txt", context=context, request=request),
+        )
+        try:
+            html = render_to_string(f"xauth/{template_name}.html", context=context, request=request)
+            mail.attach_alternative(html, "text/html")
+        except TemplateDoesNotExist:
+            pass
+
+        if kwargs.get("sync", False):
+            return mail.send()
+        return threading.Thread(target=mail.send).start()
 
     @cached_property
     def token_payload(self):

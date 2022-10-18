@@ -1,8 +1,9 @@
 from django.apps import apps
 from django.contrib.auth import get_user_model, login, logout
 from django.utils.translation import gettext as _
-from rest_framework import viewsets, permissions, exceptions, routers
+from rest_framework import viewsets, permissions, exceptions, routers, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from xently.core.loading import get_classes
 
@@ -57,13 +58,19 @@ class AccountViewSet(viewsets.ModelViewSet):
             self.do_request_verification_code(obj)
 
     def get_queryset(self):
+        if self.action == "request_verification_code":
+            # When requesting for a verification code the authentication credentials (token) may expire. And given
+            # the essence of the request is to renew the token while getting a new code in the process, we need to
+            # allow for a user object to be retrieved from the request URL without requiring any form of
+            # authentication prior.
+            return super().get_queryset()
         return get_user_model().objects.filter(pk=self.request.user.pk)
 
     def get_object(self):
         lookup_key = self.lookup_url_kwarg or self.lookup_field
         if lookup_key not in self.kwargs or self.action == "request_temporary_password":
             # When requesting a temporary password, a persisted (i.e. references the same) user instance is
-            # required to signal the generation of the password reset token. Therefore our best bet is on
+            # required to signal the generation of the password reset token. Therefore, our best bet is on
             # the user object from the request
             obj = self.request.user
             self.check_object_permissions(self.request, obj)
@@ -112,9 +119,17 @@ class AccountViewSet(viewsets.ModelViewSet):
         """This can be overridden to by projects to for example send SMS and/or email"""
         user.request_verification(send_email=True, request=self.request)
 
-    @action(detail=True, url_path="request-verification-code")
+    @action(
+        detail=True,
+        authentication_classes=[],
+        permission_classes=[AllowAny],
+        url_path="request-verification-code",
+    )
     def request_verification_code(self, request, *args, **kwargs):
-        self.do_request_verification_code(request.user)
+        user = self.get_object()
+        if user.is_verified:
+            return Response(status=status.HTTP_208_ALREADY_REPORTED)
+        self.do_request_verification_code(user)
         return self.retrieve(request, *args, **kwargs)
 
     @action(methods=["POST"], detail=True, url_path="verify-account", serializer_class=AccountVerificationSerializer)

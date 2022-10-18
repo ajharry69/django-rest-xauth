@@ -1,7 +1,8 @@
 import json
+from datetime import timedelta
 
 from django.conf import settings
-from django.utils.datetime_safe import datetime
+from django.utils import timezone
 from jwcrypto import jwt
 from xently.core.loading import get_class
 
@@ -11,6 +12,13 @@ __all__ = ["Token"]
 
 
 class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
+    DEFAULT_TOKEN_EXPIRY_TIME_DELTAS = {
+        "access": timedelta(days=1),
+        "activation": timedelta(minutes=30),
+        "verification": timedelta(minutes=30),
+        "password-reset": timedelta(minutes=30),
+    }
+
     def __init__(self, payload, activation_date=None, expiry_period=None, payload_key=None, subject=None):
         super().__init__()
         self._unencrypted = None
@@ -19,7 +27,10 @@ class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
         self.payload = payload
         self.payload_key = payload_key or "payload"
         self.activation_date = activation_date
-        self.expiry_period = expiry_period
+        self.expiry_period = expiry_period or {
+            **self.__class__.DEFAULT_TOKEN_EXPIRY_TIME_DELTAS,
+            **TOKEN_EXPIRY,
+        }[self.subject]
 
     def __repr__(self):
         return self.encrypted
@@ -38,9 +49,8 @@ class Token(get_class(f"{AUTH_APP_LABEL}.token.key", "TokenKey")):
 
     @property
     def checked_claims(self):
-        issue_date = datetime.now()
+        issue_date = timezone.now().astimezone()
         self.activation_date = issue_date if not self.activation_date else self.activation_date
-        self.expiry_period = TOKEN_EXPIRY if self.expiry_period is None else self.expiry_period
 
         expiry_date = self.activation_date + self.expiry_period
         activation_secs = int(self.activation_date.strftime("%s"))

@@ -12,8 +12,10 @@ repos:
         args: [ "--max-line-length=121", "--ignore=F405,E203,W503", "--exclude=migrations,django-rest-xauth" ]
         language_version: python3
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 21.12b0
     hooks:
       - id: black
         args: [ "--line-length=121" ]
         language_version: python3
+        # Pin to avoid `ImportError` when running `black`. See https://github.com/psf/black/issues/2964
+        additional_dependencies: ['click<8.1.0']
