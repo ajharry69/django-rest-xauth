@@ -21,12 +21,10 @@ from xauth.internal_settings import (
     APP_NAME,
     ENFORCE_ACCOUNT_VERIFICATION,
     AUTH_APP_LABEL,
-    ACCESS_TOKEN_EXPIRY,
-    ACCOUNT_VERIFICATION_TOKEN_EXPIRY,
-    PASSWORD_RESET_TOKEN_EXPIRY,
     PASSWORD_RESET_REQUEST_SUBJECT,
     VERIFICATION_REQUEST_SUBJECT,
     REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES,
+    TOKEN_EXPIRY,
 )
 
 Token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")
@@ -84,7 +82,7 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         if self.is_verified:
             if hasattr(self, self.__class__._PASSWORD_RESET_REQUEST_FLAG_ATTR):
                 return self._password_reset_token
-            return Token(self.token_payload, expiry_period=ACCESS_TOKEN_EXPIRY)
+            return Token(self.token_payload, expiry_period=TOKEN_EXPIRY.get("access"))
         return self._verification_token
 
     @property
@@ -102,11 +100,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def _verification_token(self):
-        return Token(self.token_payload, expiry_period=ACCOUNT_VERIFICATION_TOKEN_EXPIRY, subject="verification")
+        return Token(self.token_payload, subject="verification")
 
     @property
     def _password_reset_token(self):
-        return Token(self.token_payload, expiry_period=PASSWORD_RESET_TOKEN_EXPIRY, subject="password-reset")
+        return Token(self.token_payload, subject="password-reset")
 
     def _flag_password_reset(self):
         assert not hasattr(

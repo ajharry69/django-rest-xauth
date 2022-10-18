@@ -1,4 +1,3 @@
-from datetime import timedelta
 from pathlib import Path
 
 from django.conf import settings
@@ -8,12 +7,8 @@ from xauth.accounts import DEFAULT_AUTH_APP_LABEL
 
 __all__ = [
     "ENFORCE_ACCOUNT_VERIFICATION",
-    "ACCESS_TOKEN_EXPIRY",
     "TOKEN_EXPIRY",
-    "ACCOUNT_VERIFICATION_TOKEN_EXPIRY",
-    "PASSWORD_RESET_TOKEN_EXPIRY",
     "REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES",
-    "ACCOUNT_ACTIVATION_TOKEN_EXPIRY",
     "VERIFY_ENCRYPTED_TOKEN",
     "APP_NAME",
     "PASSWORD_RESET_REQUEST_SUBJECT",
@@ -29,10 +24,7 @@ APP_NAME = getattr(settings, "XAUTH_EMAIL_APP_NAME", "")
 PASSWORD_RESET_REQUEST_SUBJECT = getattr(settings, "XAUTH_PASSWORD_RESET_REQUEST_SUBJECT", _("Password Reset Request"))
 VERIFICATION_REQUEST_SUBJECT = getattr(settings, "XAUTH_VERIFICATION_REQUEST_SUBJECT", _("Account Verification"))
 ENFORCE_ACCOUNT_VERIFICATION = getattr(settings, "XAUTH_ENFORCE_ACCOUNT_VERIFICATION", True)
-ACCESS_TOKEN_EXPIRY = TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCESS_TOKEN_EXPIRY", timedelta(days=1))
-ACCOUNT_VERIFICATION_TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCOUNT_VERIFICATION_TOKEN_EXPIRY", timedelta(minutes=30))
-PASSWORD_RESET_TOKEN_EXPIRY = getattr(settings, "XAUTH_PASSWORD_RESET_TOKEN_EXPIRY", timedelta(minutes=30))
-ACCOUNT_ACTIVATION_TOKEN_EXPIRY = getattr(settings, "XAUTH_ACCOUNT_ACTIVATION_TOKEN_EXPIRY", timedelta(minutes=30))
+TOKEN_EXPIRY = getattr(settings, "XAUTH_TOKEN_EXPIRY", None) or {}
 REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES = getattr(settings, "XAUTH_REPLY_TO_ACCOUNTS_EMAIL_ADDRESSES", None)
 VERIFY_ENCRYPTED_TOKEN = getattr(settings, "XAUTH_VERIFY_ENCRYPTED_TOKEN", True)
 # Create a folder in the root directory of the project to hold generated keys

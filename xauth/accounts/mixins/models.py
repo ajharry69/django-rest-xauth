@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from xently.core.loading import get_class
 
-from xauth.internal_settings import ACCOUNT_ACTIVATION_TOKEN_EXPIRY, AUTH_APP_LABEL
+from xauth.internal_settings import AUTH_APP_LABEL
 
 Token = get_class(f"{AUTH_APP_LABEL}.token.generator", "Token")
 
@@ -18,7 +18,7 @@ class UserActivationMixin(models.Model):
 
     @property
     def activation_token(self):
-        return Token(self.token_payload, expiry_period=ACCOUNT_ACTIVATION_TOKEN_EXPIRY, subject="activation")
+        return Token(self.token_payload, subject="activation")
 
     @property
     def token(self):
