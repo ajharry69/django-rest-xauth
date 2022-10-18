@@ -4,19 +4,5 @@ site_author: Orinda Harrison
 nav:
   - Home: index.md
   - API guide:
-      - Customizing emails: api-guide/mail.md
-      - Endpoints: api-guide/endpoints.md
       - Settings: api-guide/settings.md
-      - Classes:
-          - Token:
-              - Overview: api-guide/classes/token/index.md
-              - Properties: api-guide/classes/token/properties.md
-              - Methods: api-guide/classes/token/methods.md
-          - User:
-              - Overview: api-guide/classes/user/index.md
-              - Properties: api-guide/classes/user/properties.md
-              - Methods: api-guide/classes/user/methods.md
-  - About:
-      - 'Contributing': about/contributing.md
-      - 'License': about/license.md
 theme: readthedocs
