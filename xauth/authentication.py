@@ -40,13 +40,14 @@ class JWTAuthentication(authentication.BaseAuthentication):
         return get_class(f"{AUTH_APP_LABEL}.views", "AccountViewSet")(request=self.request)
 
     def _is_request_from_any_of(self, url_names):
-        try:
-            endpoints = [
-                self._auth_view.reverse_action(url_name, kwargs=self._auth_view.request.resolver_match.kwargs)
-                for url_name in url_names
-            ]
-        except (Resolver404, NoReverseMatch):
-            return False
+        endpoints = []
+        for url_name in url_names:
+            try:
+                action = self._auth_view.reverse_action(url_name, kwargs=self._auth_view.request.resolver_match.kwargs)
+            except (Resolver404, NoReverseMatch):
+                pass
+            else:
+                endpoints.append(action)
         return self.request.build_absolute_uri() in endpoints
 
     @property
